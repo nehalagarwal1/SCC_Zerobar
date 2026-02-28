@@ -115,20 +115,10 @@ struct SurvivalGridView: View {
                 .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedCategory)
         } else {
             NavigationLink(value: item) {
-                SurvivalCardView(item: item, namespace: namespace, isPinned: pinnedIDs.contains(item.id))
+                SurvivalCardView(item: item, namespace: namespace, isPinned: pinnedIDs.contains(item.id), pinAction: { togglePin(item.id) })
             }
             .buttonStyle(.plain)
             .simultaneousGesture(TapGesture().onEnded { HapticManager.shared.tap() })
-            .contextMenu {
-                Button {
-                    togglePin(item.id)
-                } label: {
-                    Label(
-                        pinnedIDs.contains(item.id) ? "Unpin" : "Pin to Quick Access",
-                        systemImage: pinnedIDs.contains(item.id) ? "pin.slash" : "pin.fill"
-                    )
-                }
-            }
             .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedCategory)
         }
     }
@@ -392,6 +382,7 @@ struct SurvivalCardView: View {
     let item: SurvivalItem
     let namespace: Namespace.ID
     var isPinned: Bool = false
+    var pinAction: (() -> Void)? = nil
     
     private var categoryColor: Color {
         switch item.category {
@@ -420,11 +411,25 @@ struct SurvivalCardView: View {
                 .matchedGeometryEffect(id: "title_\(item.id)", in: namespace)
                 
             Spacer(minLength: 0)
-            
-            // Chevron or lock
-            Image(systemName: item.isLocked ? "lock.fill" : "chevron.right")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(TacticalTheme.textSecondary.opacity(0.6))
+            // Actions
+            HStack(spacing: 12) {
+                if !item.isLocked, let action = pinAction {
+                    Button(action: action) {
+                        Image(systemName: isPinned ? "pin.fill" : "pin")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(isPinned ? TacticalTheme.accent : TacticalTheme.textSecondary.opacity(0.4))
+                            .frame(width: 30, height: 30)
+                            // Increase tap target without changing visual size
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                // Chevron or lock
+                Image(systemName: item.isLocked ? "lock.fill" : "chevron.right")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(TacticalTheme.textSecondary.opacity(0.6))
+            }
         }
         .padding(.horizontal, AdaptiveLayout.isIPad ? 18 : 14)
         .padding(.vertical, 12)
@@ -442,15 +447,6 @@ struct SurvivalCardView: View {
                     .frame(width: 4)
                     .padding(.vertical, 10)
                     .clipShape(RoundedRectangle(cornerRadius: AdaptiveLayout.cardRadius, style: .continuous))
-            }
-        }
-        .overlay(alignment: .topTrailing) {
-            // Pin indicator
-            if isPinned {
-                Image(systemName: "pin.fill")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(TacticalTheme.accent)
-                    .padding(8)
             }
         }
         .opacity(item.isLocked ? 0.6 : 1.0)
