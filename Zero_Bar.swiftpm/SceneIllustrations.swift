@@ -1070,13 +1070,114 @@ struct AvalancheSurvivalIllustration: View {
         }.font(.system(size: 60, weight: .light)).foregroundColor(color)
     }
 }
+struct MakeTorchIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "line.diagonal"); Image(systemName: "tshirt.fill") } }
+            else if step == 1 { HStack { Image(systemName: "drop.fill").foregroundColor(.orange); Image(systemName: "arrow.down") } } // sap/fat
+            else if step == 2 { Image(systemName: "link") } // secure
+            else if step == 3 { HStack { Image(systemName: "flame.fill").foregroundColor(.orange); Image(systemName: "arrow.right.to.line") } }
+            else if step == 4 { HStack { Image(systemName: "timer"); Text("30m").font(.title).bold() } }
+            else { HStack { Image(systemName: "cylinder.fill"); Image(systemName: "flame.fill") } } // tin can
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
 
-// TOOLS
-struct MakeTorchIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "flashlight.on.fill", color: color) } }
-struct TarpShelterSetupIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "tent.fill", color: color) } }
-struct DIYWaterFilterIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "line.3.horizontal.decrease.circle.fill", color: color) } }
-struct ImprovisedCompassIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "location.north.fill", color: color) } }
-struct EmergencyWhistleIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "speaker.wave.3.fill", color: color) } }
-struct CollectRainwaterIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "cloud.rain.fill", color: color) } }
-struct BuildEmergencyKitIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "cross.case.fill", color: color) } }
-struct SurvivalHygieneIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "leaf.fill", color: color) } }
+struct TarpShelterSetupIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "tree.fill"); Image(systemName: "tent.fill"); Image(systemName: "tree.fill") } }
+            else if step == 1 { HStack { Image(systemName: "tent.2.fill") } } // lean to
+            else if step == 2 { HStack { Image(systemName: "wind"); Image(systemName: "arrow.turn.down.right") } }
+            else if step == 3 { HStack { Image(systemName: "rhombus.fill"); Image(systemName: "arrow.down.to.line") } } // rocks weight
+            else if step == 4 { HStack { Image(systemName: "arrow.left.and.right"); Image(systemName: "tent.fill") } }
+            else { HStack { Image(systemName: "leaf.fill"); Image(systemName: "arrow.down.to.line") } } // ground cover
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct DIYWaterFilterIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "waterbottle.fill"); Image(systemName: "scissors") } }
+            else if step == 1 { Image(systemName: "tshirt.fill") }
+            else if step == 2 { Image(systemName: "rhombus.fill").foregroundColor(.black) } // charcoal
+            else if step == 3 { HStack(spacing: 0) { Image(systemName: "circle.fill").font(.system(size: 20)); Image(systemName: "circle.fill").font(.system(size: 40)) } } // sand/gravel
+            else if step == 4 { HStack { Image(systemName: "drop.fill"); Image(systemName: "arrow.down"); Image(systemName: "cup.and.saucer.fill") } }
+            else { HStack { Image(systemName: "flame.fill").foregroundColor(.red); Image(systemName: "drop.fill") } } // boil
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct ImprovisedCompassIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "pin.fill") }
+            else if step == 1 { HStack { Image(systemName: "magnet"); Image(systemName: "arrow.right"); Text("50x").font(.title).bold() } }
+            else if step == 2 { HStack { Image(systemName: "leaf.fill"); Image(systemName: "water.waves") } }
+            else if step == 3 { HStack { Image(systemName: "pin.fill"); Image(systemName: "arrow.down"); Image(systemName: "leaf.fill") } }
+            else if step == 4 { HStack { Image(systemName: "arrow.2.circlepath"); Image(systemName: "location.north.fill") } }
+            else { HStack { Image(systemName: "sun.max.fill"); Text("E").font(.title).bold() } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EmergencyWhistleIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "hands.sparkles.fill"); Image(systemName: "speaker.wave.3.fill") } }
+            else if step == 1 { HStack { Image(systemName: "leaf.fill"); Image(systemName: "mouth.fill") } } // acorn concept
+            else if step == 2 { Image(systemName: "hands.clap.fill") } // cupped hands
+            else if step == 3 { HStack { Text("3x").font(.title).bold(); Image(systemName: "speaker.wave.3.fill") } }
+            else if step == 4 { HStack { Image(systemName: "timer"); Text("1mi").font(.title).bold() } }
+            else { HStack { Image(systemName: "bag.fill"); Image(systemName: "speaker.wave.3.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct CollectRainwaterIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "cloud.rain.fill"); Image(systemName: "cup.and.saucer.fill") } }
+            else if step == 1 { HStack { Image(systemName: "tent.fill"); Image(systemName: "arrow.down.right"); Image(systemName: "drop.fill") } } // tarp angle
+            else if step == 2 { HStack { Image(systemName: "circle.fill"); Image(systemName: "arrow.down.to.line") } } // stone
+            else if step == 3 { HStack { Image(systemName: "sun.horizon.fill"); Image(systemName: "tshirt.fill") } } // dew
+            else if step == 4 { HStack { Image(systemName: "tree.fill"); Image(systemName: "drop.triangle") } } // banana tree/tropical
+            else { HStack { Image(systemName: "drop.fill"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } } // boil
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct BuildEmergencyKitIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "drop.fill"); Text("3d").font(.title).bold() } }
+            else if step == 1 { HStack { Image(systemName: "takeoutbag.and.cup.and.straw.fill"); Text("3d").font(.title).bold() } }
+            else if step == 2 { Image(systemName: "cross.case.fill") }
+            else if step == 3 { HStack { Image(systemName: "flashlight.on.fill"); Image(systemName: "radio.fill") } }
+            else if step == 4 { HStack { Image(systemName: "doc.text.fill"); Image(systemName: "dollarsign.circle.fill") } }
+            else { HStack { Image(systemName: "battery.100"); Image(systemName: "facemask.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct SurvivalHygieneIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "hands.sparkles.fill"); Image(systemName: "drop.fill") } }
+            else if step == 1 { HStack { Image(systemName: "mouth.fill"); Image(systemName: "line.diagonal") } } // twig brush
+            else if step == 2 { HStack { Image(systemName: "arrow.down.to.line"); Text("6\"").font(.title).bold() } } // bury waste
+            else if step == 3 { Image(systemName: "bandage.fill") }
+            else if step == 4 { HStack { Image(systemName: "shoe.fill"); Image(systemName: "sun.max.fill") } } // dry feet
+            else { HStack { Image(systemName: "flame.fill").foregroundColor(.red); Image(systemName: "fork.knife") } } // boil utensils
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
