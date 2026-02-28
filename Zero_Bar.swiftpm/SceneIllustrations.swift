@@ -903,19 +903,173 @@ struct WildfireEvacuationIllustration: View {
     }
 }
 
-// WILD
-struct BuildShelterIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "house.fill", color: color) } }
-struct StartFireNoMatchIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "flame.fill", color: color) } }
-struct PurifyWaterIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "drop.fill", color: color) } }
-struct IdentifyEdiblePlantsIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "leaf.arrow.circlepath", color: color) } }
-struct NavigateByStarsIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "star.fill", color: color) } }
-struct SetSnareTrapIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "circle.dashed", color: color) } }
-struct CrossRiverIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "water.waves", color: color) } }
-struct BearEncounterIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "pawprint.fill", color: color) } }
-struct SignalWithMirrorIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "sun.max.fill", color: color) } }
-struct TieSurvivalKnotsIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "link.circle.fill", color: color) } }
-struct EscapeRipCurrentIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "water.waves", color: color) } }
-struct AvalancheSurvivalIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "cloud.snow.fill", color: color) } }
+struct BuildShelterIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "tree.fill"); Image(systemName: "arrow.right.to.line"); Image(systemName: "house.fill") } }
+            else if step == 1 { Image(systemName: "pencil.and.outline") } // ridge pole
+            else if step == 2 { HStack(spacing: 2) { ForEach(0..<5) { _ in Image(systemName: "line.diagonal") } } }
+            else if step == 3 { Image(systemName: "squareshape.split.3x3") }
+            else if step == 4 { HStack { Image(systemName: "leaf.fill"); Image(systemName: "arrow.down") } }
+            else { HStack { Image(systemName: "leaf.fill"); Image(systemName: "arrow.right.to.line") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct StartFireNoMatchIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "leaf.fill"); Image(systemName: "flame.fill") } }
+            else if step == 1 { Image(systemName: "scissors") } // carve spindle
+            else if step == 2 { Image(systemName: "waveform.path.badge.minus") } // bow string
+            else if step == 3 { HStack { Image(systemName: "arrow.up.and.down"); Image(systemName: "flame.fill").opacity(0.5) } }
+            else if step == 4 { HStack { Image(systemName: "flame.fill").foregroundColor(.red); Image(systemName: "arrow.right") } }
+            else { HStack { Image(systemName: "wind"); Image(systemName: "flame.fill").foregroundColor(.orange) } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct PurifyWaterIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "drop.fill"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } }
+            else if step == 1 { HStack { Image(systemName: "drop.fill"); Image(systemName: "flame.fill").foregroundColor(.red) } }
+            else if step == 2 { HStack { Image(systemName: "tshirt.fill"); Image(systemName: "arrow.down") } }
+            else if step == 3 { HStack { Image(systemName: "drop.fill"); Text("2\u{2080}").font(.title).bold() } } // bleach drops
+            else if step == 4 { HStack { Image(systemName: "sun.max.fill"); Image(systemName: "timer") } }
+            else { HStack { Image(systemName: "line.3.horizontal.decrease"); Image(systemName: "flame.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct IdentifyEdiblePlantsIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "leaf.fill"); Image(systemName: "questionmark.circle.fill") } }
+            else if step == 1 { HStack { Image(systemName: "hand.point.up.left.fill"); Image(systemName: "timer") } }
+            else if step == 2 { HStack { Image(systemName: "mouth.fill"); Image(systemName: "timer") } }
+            else if step == 3 { HStack { Image(systemName: "mouth.fill"); Image(systemName: "exclamationmark.triangle.fill") } }
+            else if step == 4 { HStack { Image(systemName: "leaf.fill"); Image(systemName: "checkmark.circle.fill").foregroundColor(.green) } }
+            else { HStack { Image(systemName: "leaf.fill"); Image(systemName: "xmark.circle.fill").foregroundColor(.red) } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct NavigateByStarsIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "star.fill"); Image(systemName: "arrow.up"); Image(systemName: "star.fill") } }
+            else if step == 1 { HStack { Image(systemName: "star.fill").foregroundColor(.yellow); Text("N").font(.title).bold() } }
+            else if step == 2 { HStack { Image(systemName: "star.fill"); Text("S").font(.title).bold() } }
+            else if step == 3 { HStack { Text("E").font(.title).bold(); Image(systemName: "arrow.right"); Text("W").font(.title).bold() } }
+            else if step == 4 { HStack { Image(systemName: "eye.fill"); Image(systemName: "line.diagonal") } }
+            else { HStack { Image(systemName: "star.fill"); Image(systemName: "arrow.left.and.right") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct SetSnareTrapIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) }
+            else if step == 1 { HStack { Image(systemName: "pawprint.fill"); Image(systemName: "magnifyingglass") } }
+            else if step == 2 { Image(systemName: "circle.dashed") }
+            else if step == 3 { HStack { Image(systemName: "hand.raised.fill"); Image(systemName: "arrow.left.and.right") } }
+            else if step == 4 { HStack { Image(systemName: "tree.fill"); Image(systemName: "circle.dashed") } }
+            else { HStack { Image(systemName: "circle.dashed"); Image(systemName: "timer") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct CrossRiverIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "eye.fill"); Image(systemName: "water.waves") } }
+            else if step == 1 { HStack { Image(systemName: "figure.walk"); Image(systemName: "arrow.down.to.line") } }
+            else if step == 2 { HStack { Image(systemName: "shoe.fill"); Image(systemName: "checkmark.circle.fill").foregroundColor(.green) } }
+            else if step == 3 { HStack { Image(systemName: "figure.walk"); Image(systemName: "line.diagonal") } }
+            else if step == 4 { HStack { Image(systemName: "arrow.up.right"); Image(systemName: "water.waves") } }
+            else { HStack { Image(systemName: "figure.pool.swim"); Image(systemName: "arrow.right") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct BearEncounterIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "figure.stand"); Image(systemName: "xmark.circle.fill").foregroundColor(.red) } } // dont run
+            else if step == 1 { HStack { Image(systemName: "figure.arms.open"); Image(systemName: "speaker.wave.2.fill") } }
+            else if step == 2 { HStack { Image(systemName: "arrow.backward"); Image(systemName: "eye.slash.fill") } }
+            else if step == 3 { Image(systemName: "figure.roll") } // play dead
+            else if step == 4 { HStack { Image(systemName: "hand.raised.fill"); Image(systemName: "exclamationmark.circle.fill").foregroundColor(.red) } } // fight back
+            else { HStack { Image(systemName: "spray.bottle.fill"); Image(systemName: "wind") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct SignalWithMirrorIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "sun.max.fill") }
+            else if step == 1 { HStack { Image(systemName: "sun.max.fill"); Image(systemName: "hand.raised.fill") } }
+            else if step == 2 { Image(systemName: "hand.point.up.left.fill") } // V shape concept
+            else if step == 3 { HStack { Image(systemName: "sun.max.fill"); Image(systemName: "arrow.right") } }
+            else if step == 4 { Text("SOS").font(.system(size: 80, weight: .bold)) }
+            else { HStack { Image(systemName: "eye.fill"); Text("50m").font(.title).bold() } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct TieSurvivalKnotsIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "link.circle.fill"); Image(systemName: "crown.fill") } }
+            else if step == 1 { Image(systemName: "circle.dashed") }
+            else if step == 2 { HStack { Image(systemName: "tree.fill"); Image(systemName: "link") } }
+            else if step == 3 { HStack { Image(systemName: "tent.fill"); Image(systemName: "link") } }
+            else if step == 4 { Image(systemName: "number.square.fill") } // conceptual for figure 8
+            else { HStack { Image(systemName: "link"); Image(systemName: "link") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EscapeRipCurrentIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "brain.head.profile"); Image(systemName: "hand.raised.fill") } }
+            else if step == 1 { HStack { Image(systemName: "figure.pool.swim"); Image(systemName: "xmark.circle.fill").foregroundColor(.red) } }
+            else if step == 2 { HStack { Image(systemName: "arrow.left.and.right"); Image(systemName: "water.waves") } }
+            else if step == 3 { HStack { Image(systemName: "figure.pool.swim"); Image(systemName: "timer") } } // float / tread
+            else if step == 4 { HStack { Image(systemName: "arrow.up.right"); Image(systemName: "house.fill") } } // back to shore
+            else { HStack { Image(systemName: "person.wave.2.fill"); Image(systemName: "lifebuoy.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct AvalancheSurvivalIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "arrow.left.and.right"); Image(systemName: "cloud.snow.fill") } }
+            else if step == 1 { HStack { Image(systemName: "tree.fill"); Image(systemName: "bag.fill").opacity(0.5) } }
+            else if step == 2 { HStack { Image(systemName: "figure.pool.swim"); Image(systemName: "arrow.up") } } // swim up
+            else if step == 3 { HStack { Image(systemName: "hand.raised.fill"); Image(systemName: "mouth.fill") } } // air pocket
+            else if step == 4 { HStack { Image(systemName: "drop.fill"); Image(systemName: "arrow.up") } } // gravity
+            else { HStack { Image(systemName: "ear"); Image(systemName: "speaker.wave.3.fill") } } // shout when hear
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
 
 // TOOLS
 struct MakeTorchIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "flashlight.on.fill", color: color) } }
