@@ -788,23 +788,36 @@ struct QuizView: View {
         var generated: [QuizQuestion] = []
         let shuffled = allItems.shuffled()
         
+        // Randomize question type distribution
+        var typePool: [Int] = []
+        for _ in 0..<totalQuestions {
+            typePool.append(Int.random(in: 0...2))
+        }
+        
         for (idx, item) in shuffled.prefix(totalQuestions).enumerated() {
-            let questionType = idx % 3 // Rotate between question types
+            let questionType = typePool[idx]
             
             switch questionType {
             case 0:
-                // Type 1: "What's the FIRST step?" (original)
-                let correctStep = item.steps[0]
+                // Type 1: ask about a specific step position
+                let maxStepIdx = min(item.steps.count - 1, 2) // Ask about steps 1-3
+                let stepIdx = Int.random(in: 0...maxStepIdx)
+                let correctStep = item.steps[stepIdx]
+                
+                // Build distractors from other items' same-position steps
                 let distractors = fallbackItems
-                    .filter { $0.id != item.id }
+                    .filter { $0.id != item.id && $0.steps.count > stepIdx }
                     .shuffled()
                     .prefix(3)
-                    .map { $0.steps[0] }
+                    .map { $0.steps[stepIdx] }
                 var options = [correctStep] + Array(distractors)
                 options.shuffle()
                 
+                let ordinals = ["FIRST", "SECOND", "THIRD"]
+                let ordinal = ordinals[stepIdx]
+                
                 generated.append(QuizQuestion(
-                    question: "What should you do FIRST for: \(item.title)?",
+                    question: "What is the \(ordinal) step for: \(item.title)?",
                     context: "Category: \(item.category.rawValue)",
                     correctAnswer: correctStep,
                     options: options,
@@ -815,7 +828,7 @@ struct QuizView: View {
             case 1:
                 // Type 2: "Arrange steps in correct order"
                 guard item.steps.count >= 4 else {
-                    // Fallback to firstStep if not enough steps
+                    // Fallback to firstStep
                     let correctStep = item.steps[0]
                     let distractors = fallbackItems
                         .filter { $0.id != item.id }
@@ -834,16 +847,19 @@ struct QuizView: View {
                     ))
                     continue
                 }
-                // Pick first 4 steps as the correct order
-                let correctOrder = Array(item.steps.prefix(4))
+                // Randomly pick a starting offset for variety
+                let maxStart = max(0, item.steps.count - 4)
+                let startIdx = Int.random(in: 0...maxStart)
+                let correctOrder = Array(item.steps[startIdx..<(startIdx + 4)])
                 var scrambled = correctOrder
-                // Ensure it's actually shuffled
                 while scrambled == correctOrder {
                     scrambled.shuffle()
                 }
                 
+                let stepLabel = startIdx == 0 ? "first 4 steps" : "steps \(startIdx + 1)-\(startIdx + 4)"
+                
                 generated.append(QuizQuestion(
-                    question: "Arrange the first 4 steps of \(item.title) in correct order:",
+                    question: "Arrange the \(stepLabel) of \(item.title) in correct order:",
                     context: "Tap each step in the right sequence",
                     correctAnswer: correctOrder.joined(separator: " → "),
                     options: scrambled,
@@ -962,7 +978,7 @@ struct QuizQuestion {
     
     var typeBadge: String {
         switch questionType {
-        case .firstStep: return "FIRST STEP"
+        case .firstStep: return "STEP QUIZ"
         case .ordering:  return "ORDER"
         case .category:  return "CATEGORY"
         }
