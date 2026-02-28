@@ -8,15 +8,15 @@ import PackageDescription
 import AppleProductTypes
 
 let package = Package(
-    name: "Zero_Bar",
+    name: "PrepVault",
     platforms: [
         .iOS("16.0")
     ],
     products: [
         .iOSApplication(
-            name: "Zero_Bar",
+            name: "PrepVault",
             targets: ["AppModule"],
-            bundleIdentifier: "nehal-scc.Zero-Bar",
+            bundleIdentifier: "nehal-scc.PrepVault",
             displayVersion: "1.0",
             bundleVersion: "1",
             appIcon: .placeholder(icon: .barChart),

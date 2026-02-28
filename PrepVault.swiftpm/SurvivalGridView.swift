@@ -124,7 +124,7 @@ struct SurvivalGridView: View {
         HStack(spacing: 12) {
             // App title — anchor of the screen
             VStack(alignment: .leading, spacing: 2) {
-                Text("ZERO BAR")
+                Text("PREP VAULT")
                     .font(.system(size: AdaptiveLayout.isIPad ? 20 : 16, design: .monospaced).weight(.black))
                     .foregroundStyle(TacticalTheme.accent)
                     .glow(TacticalTheme.accent, radius: 4)
