@@ -328,7 +328,7 @@ struct HypothermiaIllustration: View {
             else if step == 1 { HStack { Image(systemName: "tshirt.fill"); Image(systemName: "drop.fill").foregroundColor(.blue); Image(systemName: "arrow.down") } }
             else if step == 2 { HStack(spacing: 5) { Image(systemName: "flame.fill").foregroundColor(.orange); Image(systemName: "figure.stand") } } // warm core
             else if step == 3 { HStack(spacing: -10) { Image(systemName: "figure.stand").foregroundColor(color); Image(systemName: "figure.stand").foregroundColor(.orange) } } // body-to-body
-            else if step == 4 { HStack { Image(systemName: "cup.and.saucer.fill"); Image(systemName: "wineglass.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red).offset(x: -30) } } // no alcohol
+            else if step == 4 { HStack(spacing: 20) { Image(systemName: "cup.and.saucer.fill"); ZStack { Image(systemName: "wineglass.fill"); Image(systemName: "slash.circle").foregroundColor(.red).font(.system(size: 80)) } } } // no alcohol
             else { HStack { Image(systemName: "hand.raised.fill"); Image(systemName: "heart.text.square.fill") } } // handle gently
         }.font(.system(size: 60, weight: .light)).foregroundColor(color)
     }
