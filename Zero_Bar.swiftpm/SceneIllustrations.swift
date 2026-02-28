@@ -679,23 +679,229 @@ struct RoadsideBreakdownIllustration: View {
     }
 }
 
-// URBAN
-struct TornadoProtocolIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "tornado", color: color) } }
-struct FireEscapePlanIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "flame.circle.fill", color: color) } }
-struct SignalForRescueIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "antenna.radiowaves.left.and.right", color: color) } }
-struct EarthquakeProtocolIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "waveform.path.ecg", color: color) } }
-struct PowerOutageKitIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "powerplug.fill", color: color) } }
-struct FloodSurvivalIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "cloud.heavyrain.fill", color: color) } }
-struct GasLeakResponseIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "aqi.medium", color: color) } }
-struct SelfDefenseBasicsIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "hand.raised.fill", color: color) } }
-struct NavigateWithoutGPSIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "map.fill", color: color) } }
-struct EmergencyRadioUseIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "radio.fill", color: color) } }
-struct LiftFreeFallIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "figure.fall", color: color) } }
-struct StopDogAttackIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "xmark.shield.fill", color: color) } }
-struct LightningSafetyIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "bolt.fill", color: color) } }
-struct CarbonMonoxideSafetyIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "aqi.high", color: color) } }
-struct HurricanePreparednessIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "hurricane", color: color) } }
-struct WildfireEvacuationIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "smoke.fill", color: color) } }
+struct TornadoProtocolIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "eyes"); Image(systemName: "tornado") } }
+            else if step == 1 { HStack { Image(systemName: "arrow.down.to.line"); Image(systemName: "house.fill") } }
+            else if step == 2 { HStack { Image(systemName: "bed.double.fill"); Image(systemName: "arrow.down") } }
+            else if step == 3 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "arrow.right.circle.fill").foregroundColor(.red) } } // conceptually mobile home
+            else if step == 4 { Image(systemName: "figure.roll") }
+            else { HStack { Image(systemName: "bolt.slash.fill"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct FireEscapePlanIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "door.left.hand.open"); Text("2").font(.title).bold(); Image(systemName: "window.casement") } }
+            else if step == 1 { Image(systemName: "sensor.fill") }
+            else if step == 2 { HStack { Image(systemName: "figure.walk"); Image(systemName: "person.3.fill") } }
+            else if step == 3 { HStack { Image(systemName: "smoke.fill"); Image(systemName: "arrow.down") } }
+            else if step == 4 { HStack { Image(systemName: "hand.raised.fill"); Image(systemName: "door.left.hand.closed") } }
+            else { Image(systemName: "tree.fill") }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct SignalForRescueIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Text("3").font(.system(size: 80, weight: .bold)); Image(systemName: "exclamationmark.3") } }
+            else if step == 1 { Image(systemName: "speaker.wave.3.fill") }
+            else if step == 2 { Image(systemName: "flashlight.on.fill") }
+            else if step == 3 { Text("SOS").font(.system(size: 80, weight: .bold)) }
+            else if step == 4 { Image(systemName: "sun.max.fill") }
+            else { HStack { Image(systemName: "figure.stand"); Image(systemName: "mappin.and.ellipse") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EarthquakeProtocolIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "arrow.down.to.line"); Image(systemName: "figure.stand") } }
+            else if step == 1 { HStack { Image(systemName: "menubar.dock.rectangle"); Image(systemName: "arrow.down") } } // table concept
+            else if step == 2 { Image(systemName: "hand.raised.fill") }
+            else if step == 3 { HStack { Image(systemName: "building.fill"); Image(systemName: "arrow.right.to.line") } }
+            else if step == 4 { HStack { Image(systemName: "figure.run"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else { HStack { Image(systemName: "cross.case.fill"); Image(systemName: "building.2.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct PowerOutageKitIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "flashlight.on.fill"); Image(systemName: "battery.100") } }
+            else if step == 1 { HStack { Image(systemName: "drop.fill"); Text("1 gal").font(.title).bold() } }
+            else if step == 2 { Image(systemName: "radio.fill") }
+            else if step == 3 { HStack { Image(systemName: "snowflake"); Image(systemName: "drop.fill") } }
+            else if step == 4 { Image(systemName: "bolt.batteryblock.fill") }
+            else { HStack { Image(systemName: "refrigerator.fill"); Image(systemName: "timer") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct FloodSurvivalIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "arrow.up.right"); Image(systemName: "mountain.2.fill") } }
+            else if step == 1 { HStack { Image(systemName: "figure.walk"); Image(systemName: "water.waves"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else if step == 2 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "water.waves") } }
+            else if step == 3 { HStack { Image(systemName: "building.fill"); Image(systemName: "arrow.up") } }
+            else if step == 4 { Image(systemName: "phone.fill.arrow.up.right") }
+            else { HStack { Image(systemName: "water.waves"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct GasLeakResponseIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "nose.fill") }
+            else if step == 1 { HStack { Image(systemName: "lightswitch.on.square"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else if step == 2 { HStack { Image(systemName: "candybarphone"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else if step == 3 { HStack { Image(systemName: "window.casement"); Image(systemName: "arrow.left.and.right") } }
+            else if step == 4 { HStack { Image(systemName: "figure.walk"); Image(systemName: "arrow.right.to.line") } }
+            else { Image(systemName: "phone.fill.arrow.up.right") }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct SelfDefenseBasicsIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "figure.run") }
+            else if step == 1 { HStack { Image(systemName: "speaker.wave.3.fill"); Text("FIRE").font(.title).bold() } }
+            else if step == 2 { HStack { Image(systemName: "figure.stand"); Image(systemName: "hand.raised.fill") } }
+            else if step == 3 { Image(systemName: "eye.fill") }
+            else if step == 4 { Image(systemName: "hand.raised.fill") }
+            else { HStack { Image(systemName: "arrow.turn.up.right"); Image(systemName: "hand.raised.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct NavigateWithoutGPSIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "sun.max.fill"); Image(systemName: "arrow.right") } }
+            else if step == 1 { Image(systemName: "clock.fill") }
+            else if step == 2 { HStack { Image(systemName: "star.fill"); Image(systemName: "arrow.up") } }
+            else if step == 3 { Image(systemName: "tree.fill") }
+            else if step == 4 { HStack { Image(systemName: "water.waves"); Image(systemName: "arrow.down") } }
+            else { HStack { Image(systemName: "line.3.horizontal"); Image(systemName: "mappin.circle.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EmergencyRadioUseIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "radio.fill"); Text("NOAA").font(.title).bold() } }
+            else if step == 1 { HStack { Image(systemName: "radio.fill"); Text("Ch 9").font(.title).bold() } }
+            else if step == 2 { HStack { Image(systemName: "candybarphone"); Text("Ch 1").font(.title).bold() } }
+            else if step == 3 { HStack { Image(systemName: "mic.fill"); Image(systemName: "person.wave.2.fill") } }
+            else if step == 4 { Text("MAYDAY").font(.title).bold() }
+            else { HStack { Image(systemName: "ear"); Image(systemName: "timer") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct LiftFreeFallIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "figure.walk"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } } // no jumping
+            else if step == 1 { Image(systemName: "figure.roll") } // lie flat
+            else if step == 2 { HStack { Image(systemName: "figure.stand"); Image(systemName: "hand.raised.fill") } } // cover head
+            else if step == 3 { HStack { Image(systemName: "figure.stand"); Image(systemName: "rectangle.fill") } } // hold handrail
+            else if step == 4 { Image(systemName: "arrow.down") }
+            else { Image(systemName: "exclamationmark.circle.fill").foregroundColor(.red) } // alarm button
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct StopDogAttackIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "figure.run"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else if step == 1 { HStack { Image(systemName: "eye.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else if step == 2 { HStack { Image(systemName: "figure.stand"); Image(systemName: "shield.fill") } } // barrier
+            else if step == 3 { Image(systemName: "figure.roll") }
+            else if step == 4 { Image(systemName: "hand.raised.fill") }
+            else { HStack { Image(systemName: "drop.fill"); Image(systemName: "cross.case.fill") } } // wash and med
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct LightningSafetyIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "bolt.fill"); Image(systemName: "timer") } }
+            else if step == 1 { HStack { Image(systemName: "house.fill"); Image(systemName: "arrow.right.circle.fill") } }
+            else if step == 2 { HStack { Image(systemName: "powerplug.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else if step == 3 { Image(systemName: "figure.stand") } // crouch concept
+            else if step == 4 { HStack { Image(systemName: "tree.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else { Image(systemName: "phone.fill.arrow.up.right") }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct CarbonMonoxideSafetyIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "sensor.fill") }
+            else if step == 1 { Image(systemName: "face.dotted") } // symptoms
+            else if step == 2 { HStack { Image(systemName: "figure.walk"); Image(systemName: "arrow.right.to.line") } }
+            else if step == 3 { Image(systemName: "phone.fill.arrow.up.right") }
+            else if step == 4 { HStack { Image(systemName: "engine.combustion.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+            else { HStack { Image(systemName: "flame.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct HurricanePreparednessIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "map.fill"); Image(systemName: "arrow.triangle.pull") } }
+            else if step == 1 { Image(systemName: "briefcase.fill") } // Go Kit
+            else if step == 2 { HStack { Image(systemName: "window.casement"); Image(systemName: "xmark") } } // board up
+            else if step == 3 { HStack { Image(systemName: "bathtub.fill"); Image(systemName: "drop.fill") } }
+            else if step == 4 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "arrow.right") } }
+            else { HStack { Image(systemName: "house.fill"); Image(systemName: "shield.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct WildfireEvacuationIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "arrow.right") } }
+            else if step == 1 { Image(systemName: "briefcase.fill") }
+            else if step == 2 { HStack { Image(systemName: "tshirt.fill"); Image(systemName: "facemask.fill") } }
+            else if step == 3 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "wind") } }
+            else if step == 4 { Image(systemName: "phone.fill.arrow.up.right") }
+            else { HStack { Image(systemName: "house.fill"); Image(systemName: "shield.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
 
 // WILD
 struct BuildShelterIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "house.fill", color: color) } }
