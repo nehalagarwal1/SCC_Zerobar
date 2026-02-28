@@ -280,7 +280,7 @@ enum AdaptiveLayout {
     static func gridItemArray() -> [GridItem] {
         Array(
             repeating: GridItem(.flexible(), spacing: gridSpacing),
-            count: gridColumns
+            count: 1 // Force a single column for a less cluttered, list-like flow
         )
     }
 }

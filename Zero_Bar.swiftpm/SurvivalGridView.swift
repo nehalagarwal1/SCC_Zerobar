@@ -404,28 +404,31 @@ struct SurvivalCardView: View {
     }
     
     var body: some View {
-        VStack(spacing: 10) {
-            Spacer()
-            
+        HStack(spacing: 16) {
             // Icon — single focal point
             Image(systemName: item.iconName)
-                .font(.system(size: AdaptiveLayout.cardIconSize, weight: .semibold))
+                .font(.system(size: 24, weight: .semibold))
                 .foregroundStyle(item.isLocked ? TacticalTheme.textSecondary : categoryColor)
+                .frame(width: 44, height: 44)
+                .background(Circle().fill((item.isLocked ? TacticalTheme.textSecondary : categoryColor).opacity(0.15)))
                 .matchedGeometryEffect(id: "icon_\(item.id)", in: namespace)
-            
-            Spacer()
             
             // Title
             Text(item.title)
-                .font(.system(size: AdaptiveLayout.cardTitleSize, design: .monospaced).weight(.semibold))
+                .font(.system(size: AdaptiveLayout.cardTitleSize + 2, design: .monospaced).weight(.bold))
                 .foregroundStyle(item.isLocked ? TacticalTheme.textSecondary : TacticalTheme.textPrimary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
                 .matchedGeometryEffect(id: "title_\(item.id)", in: namespace)
+                
+            Spacer(minLength: 0)
+            
+            // Chevron or lock
+            Image(systemName: item.isLocked ? "lock.fill" : "chevron.right")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(TacticalTheme.textSecondary.opacity(0.6))
         }
-        .padding(AdaptiveLayout.isIPad ? 18 : 14)
+        .padding(.horizontal, AdaptiveLayout.isIPad ? 18 : 14)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
-        .frame(height: AdaptiveLayout.cardHeight)
         .background(
             RoundedRectangle(cornerRadius: AdaptiveLayout.cardRadius, style: .continuous)
                 .fill(TacticalTheme.cardBackground)
@@ -434,27 +437,22 @@ struct SurvivalCardView: View {
         .overlay(alignment: .leading) {
             // Subtle category accent line
             if !item.isLocked {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(categoryColor.opacity(0.4))
-                    .frame(width: 3)
-                    .padding(.vertical, 14)
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(categoryColor)
+                    .frame(width: 4)
+                    .padding(.vertical, 10)
                     .clipShape(RoundedRectangle(cornerRadius: AdaptiveLayout.cardRadius, style: .continuous))
             }
         }
         .overlay(alignment: .topTrailing) {
-            // Lock or pin — only ONE indicator, never both
-            if item.isLocked {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(TacticalTheme.danger.opacity(0.6))
-                    .padding(10)
-            } else if isPinned {
+            // Pin indicator
+            if isPinned {
                 Image(systemName: "pin.fill")
                     .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(TacticalTheme.accent.opacity(0.6))
-                    .padding(10)
+                    .foregroundStyle(TacticalTheme.accent)
+                    .padding(8)
             }
         }
-        .opacity(item.isLocked ? 0.45 : 1.0)
+        .opacity(item.isLocked ? 0.6 : 1.0)
     }
 }
