@@ -1,210 +1,371 @@
 import SwiftUI
 
 // MARK: - SurvivalGridView
-// The main "command center" view. Uses LazyVGrid for memory-efficient rendering
-// of all 50 cards — only visible cards are in memory at any time.
-// Adaptive layout: 2 columns on iPhone, 4 on iPad with scaled spacing/sizing.
+// Clean, focused command center. Design principles:
+// - Breathing room between elements
+// - Progressive disclosure (quiz/SOS are secondary)
+// - One clear focal point per zone
 
 struct SurvivalGridView: View {
     
-    // Currently selected category filter (nil = "All")
     @State private var selectedCategory: SurvivalCategory? = nil
-    
-    // Toast state for locked module feedback
     @State private var showToast = false
+    @State private var searchText = ""
+    @State private var showSOS = false
+    @State private var showQuiz = false
+    @State private var sosPulse = false
+    @State private var panicMode = false
+    @AppStorage("pinnedItems") private var pinnedItemsData: String = "1,2,5,22"
+    @AppStorage("globalAudioEnabled") private var isAudioEnabled: Bool = true
     
-    // For matchedGeometryEffect hero transition
     let namespace: Namespace.ID
     
-    // Filtered item list, recomputed reactively when category changes
     private var filteredItems: [SurvivalItem] {
-        SurvivalData.items(for: selectedCategory)
+        var items = SurvivalData.items(for: selectedCategory)
+        if !searchText.isEmpty {
+            let q = searchText.lowercased()
+            items = items.filter { item in
+                item.title.lowercased().contains(q) ||
+                item.steps.contains { $0.lowercased().contains(q) }
+            }
+        }
+        
+        if panicMode {
+            // Further filter the items in panic mode. Let's just keep Medical, Auto, Wild, Urban
+            items = items.filter { $0.category == .medical || $0.category == .auto || $0.category == .wild || $0.category == .urban }
+        }
+        
+        return items
+    }
+    
+    private var pinnedIDs: Set<Int> {
+        Set(pinnedItemsData.split(separator: ",").compactMap { Int($0) })
+    }
+    
+    private var pinnedItems: [SurvivalItem] {
+        SurvivalData.items(for: nil).filter { pinnedIDs.contains($0.id) }
+    }
+    
+    private func togglePin(_ id: Int) {
+        var ids = pinnedIDs
+        if ids.contains(id) { ids.remove(id) } else { ids.insert(id) }
+        pinnedItemsData = ids.map(String.init).joined(separator: ",")
+        HapticManager.shared.tap()
     }
     
     var body: some View {
         ZStack {
-            // OLED-optimized true black background
-            TacticalTheme.background.ignoresSafeArea()
+            (panicMode ? TacticalTheme.danger.opacity(0.15) : TacticalTheme.background).ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // ── HUD Header ──────────────────────────
+                // ── Clean header ────────────────────
                 hudHeader
                     .padding(.horizontal, AdaptiveLayout.hudPadding)
                     .padding(.top, AdaptiveLayout.isIPad ? 12 : 8)
-                    .padding(.bottom, AdaptiveLayout.isIPad ? 16 : 12)
+                    .padding(.bottom, 12)
                 
-                // ── Category Filter ─────────────────────
+                // ── Search (compact) ────────────────
+                if !panicMode {
+                    searchBar
+                        .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+                        .padding(.bottom, 12)
+                }
+                
+                // ── Category filter ─────────────────
                 categoryFilter
-                    .padding(.bottom, AdaptiveLayout.isIPad ? 20 : 16)
+                    .padding(.bottom, 14)
                 
-                // ── Grid ────────────────────────────────
+                // ── Content ─────────────────────────
                 ScrollView(.vertical, showsIndicators: false) {
+                    if !panicMode && !pinnedItems.isEmpty && searchText.isEmpty && selectedCategory == nil {
+                        pinnedSection
+                    }
+                    
                     LazyVGrid(
                         columns: AdaptiveLayout.gridItemArray(),
                         spacing: AdaptiveLayout.gridSpacing
                     ) {
                         ForEach(Array(filteredItems.enumerated()), id: \.element.id) { index, item in
-                            if item.isLocked {
-                                // Locked: tap triggers heavy haptic + toast
-                                SurvivalCardView(
-                                    item: item,
-                                    namespace: namespace
-                                )
-                                .onTapGesture {
-                                    handleCardTap(item)
-                                }
-                                .animation(
-                                    .spring(response: 0.5, dampingFraction: 0.7)
-                                        .delay(Double(index) * 0.03),
-                                    value: selectedCategory
-                                )
-                            } else {
-                                // Unlocked: NavigationLink pushes to detail view
-                                NavigationLink(value: item) {
-                                    SurvivalCardView(
-                                        item: item,
-                                        namespace: namespace
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .simultaneousGesture(TapGesture().onEnded {
-                                    HapticManager.shared.tap()
-                                })
-                                .animation(
-                                    .spring(response: 0.5, dampingFraction: 0.7)
-                                        .delay(Double(index) * 0.03),
-                                    value: selectedCategory
-                                )
-                            }
+                            gridCard(item: item, index: index)
                         }
                     }
                     .padding(.horizontal, AdaptiveLayout.horizontalPadding)
                     .padding(.bottom, 100)
+                    
+                    if filteredItems.isEmpty { noResultsView }
                 }
             }
             
-            // ── Toast Overlay ───────────────────────
-            ToastView(message: "MODULE OFFLINE — UNLOCK REQUIRED", isShowing: $showToast)
+            // Floating SOS — bottom-left, always visible
+            sosFloatingButton
             
-            // Subtle scan line overlay for tactical feel
-            ScanLinesOverlay()
-                .ignoresSafeArea()
+            ToastView(message: "MODULE OFFLINE — UNLOCK REQUIRED", isShowing: $showToast)
+            ScanLinesOverlay().ignoresSafeArea()
+        }
+        .sheet(isPresented: $showSOS) { EmergencySOSView() }
+        .sheet(isPresented: $showQuiz) { QuizView() }
+    }
+    
+    // MARK: - Grid Card (extracted to avoid type-checker issues)
+    @ViewBuilder
+    private func gridCard(item: SurvivalItem, index: Int) -> some View {
+        if item.isLocked {
+            SurvivalCardView(item: item, namespace: namespace, isPinned: pinnedIDs.contains(item.id))
+                .onTapGesture { handleCardTap(item) }
+                .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedCategory)
+        } else {
+            NavigationLink(value: item) {
+                SurvivalCardView(item: item, namespace: namespace, isPinned: pinnedIDs.contains(item.id))
+            }
+            .buttonStyle(.plain)
+            .simultaneousGesture(TapGesture().onEnded { HapticManager.shared.tap() })
+            .contextMenu {
+                Button {
+                    togglePin(item.id)
+                } label: {
+                    Label(
+                        pinnedIDs.contains(item.id) ? "Unpin" : "Pin to Quick Access",
+                        systemImage: pinnedIDs.contains(item.id) ? "pin.slash" : "pin.fill"
+                    )
+                }
+            }
+            .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedCategory)
         }
     }
     
     // MARK: - HUD Header
-    // Mimics a heads-up display with battery readout and signal status.
-    // Scaled up on iPad for better readability at arm's length.
+    // Minimal: title on left, action icons on right. No battery clutter.
     private var hudHeader: some View {
-        HStack {
-            // Battery indicator (mock data — no actual battery API needed)
-            HStack(spacing: 6) {
-                Image(systemName: "battery.75percent")
-                    .font(.system(size: AdaptiveLayout.hudIconSize, weight: .semibold))
+        HStack(spacing: 12) {
+            // App title — anchor of the screen
+            VStack(alignment: .leading, spacing: 2) {
+                Text("ZERO BAR")
+                    .font(.system(size: AdaptiveLayout.isIPad ? 20 : 16, design: .monospaced).weight(.black))
                     .foregroundStyle(TacticalTheme.accent)
+                    .glow(TacticalTheme.accent, radius: 4)
                 
-                Text("87%")
-                    .font(.system(size: AdaptiveLayout.isIPad ? 14 : 12, design: .monospaced))
-                    .foregroundStyle(TacticalTheme.textSecondary)
+                Text("\(SurvivalData.items(for: nil).count) guides • offline ready")
+                    .font(.system(size: AdaptiveLayout.isIPad ? 11 : 9, design: .monospaced).weight(.medium))
+                    .foregroundStyle(TacticalTheme.textSecondary.opacity(0.6))
             }
             
             Spacer()
             
-            // App title — small and tactical
-            Text("ZERO BAR")
-                .font(.system(size: AdaptiveLayout.hudTitleSize, design: .monospaced).weight(.black))
-                .foregroundStyle(TacticalTheme.accent)
-                .glow(TacticalTheme.accent, radius: 4)
+            // PANIC Toggle
+            Button {
+                HapticManager.shared.heavy()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { panicMode.toggle() }
+            } label: {
+                Text(panicMode ? "LEARN MODE" : "EMERGENCY")
+                    .font(.system(size: 11, design: .monospaced).weight(.black))
+                    .foregroundStyle(panicMode ? TacticalTheme.background : TacticalTheme.danger)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(panicMode ? TacticalTheme.danger : TacticalTheme.danger.opacity(0.15)))
+            }
+            .accessibilityLabel(panicMode ? "Switch to Learn Mode" : "Switch to Emergency Mode")
             
-            Spacer()
+            // Audio Toggle
+            Button {
+                HapticManager.shared.tap()
+                isAudioEnabled.toggle()
+            } label: {
+                Image(systemName: isAudioEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(isAudioEnabled ? TacticalTheme.accent : TacticalTheme.danger)
+                    .padding(8)
+                    .background(Circle().fill(TacticalTheme.cardBackground))
+            }
+            .accessibilityLabel(isAudioEnabled ? "Mute automatic audio" : "Enable automatic audio")
             
-            // No Signal badge
-            HStack(spacing: 5) {
+            // Quiz — subtle icon button
+            if !panicMode {
+                Button {
+                    HapticManager.shared.tap()
+                    showQuiz = true
+                } label: {
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(TacticalTheme.textSecondary)
+                        .padding(8)
+                        .background(Circle().fill(TacticalTheme.cardBackground))
+                }
+                .accessibilityLabel("Take survival quiz")
+            }
+            
+            // No Signal indicator — just a small dot + text
+            HStack(spacing: 4) {
                 Circle()
                     .fill(TacticalTheme.danger)
-                    .frame(width: AdaptiveLayout.isIPad ? 8 : 6, height: AdaptiveLayout.isIPad ? 8 : 6)
-                    .overlay(
-                        Circle()
-                            .fill(TacticalTheme.danger)
-                            .frame(width: AdaptiveLayout.isIPad ? 8 : 6, height: AdaptiveLayout.isIPad ? 8 : 6)
-                            .scaleEffect(1.8)
-                            .opacity(0.3)
-                    )
-                
+                    .frame(width: 5, height: 5)
                 Text("NO SIGNAL")
-                    .font(.system(size: AdaptiveLayout.isIPad ? 12 : 10, design: .monospaced).weight(.bold))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 9, design: .monospaced).weight(.bold))
+                    .foregroundStyle(TacticalTheme.danger.opacity(0.8))
             }
-            .padding(.horizontal, AdaptiveLayout.isIPad ? 14 : 10)
-            .padding(.vertical, AdaptiveLayout.isIPad ? 7 : 5)
-            .background(
-                Capsule()
-                    .fill(TacticalTheme.danger.opacity(0.25))
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(TacticalTheme.danger.opacity(0.6), lineWidth: 1)
-                    )
-            )
         }
     }
     
-    // MARK: - Category Filter
-    // Horizontal scrolling segmented control. "All" + 5 categories.
-    // On iPad, pills are larger with more generous touch targets.
+    // MARK: - Search Bar
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(TacticalTheme.textSecondary.opacity(0.6))
+            
+            TextField("Search guides…", text: $searchText)
+                .font(.system(size: 14, design: .rounded).weight(.medium))
+                .foregroundStyle(TacticalTheme.textPrimary)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                    HapticManager.shared.tap()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(TacticalTheme.textSecondary.opacity(0.5))
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(TacticalTheme.cardBackground)
+        )
+    }
+    
+    // MARK: - Category Filter (clean, no counts)
     private var categoryFilter: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: AdaptiveLayout.isIPad ? 14 : 10) {
-                // "All" button
-                CategoryPill(
-                    title: "All",
-                    icon: "square.grid.2x2.fill",
-                    isSelected: selectedCategory == nil
-                )
-                .onTapGesture {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                        selectedCategory = nil
-                    }
-                    HapticManager.shared.tap()
-                }
-                
-                // Category buttons
-                ForEach(SurvivalCategory.allCases) { category in
-                    CategoryPill(
-                        title: category.rawValue,
-                        icon: category.iconName,
-                        isSelected: selectedCategory == category
-                    )
+            HStack(spacing: 8) {
+                CategoryPill(title: "All", icon: "square.grid.2x2.fill", isSelected: selectedCategory == nil)
                     .onTapGesture {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                            selectedCategory = category
-                        }
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) { selectedCategory = nil }
                         HapticManager.shared.tap()
                     }
+                
+                ForEach(SurvivalCategory.allCases) { category in
+                    CategoryPill(title: category.rawValue, icon: category.iconName, isSelected: selectedCategory == category)
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) { selectedCategory = category }
+                            HapticManager.shared.tap()
+                        }
                 }
             }
             .padding(.horizontal, AdaptiveLayout.horizontalPadding)
         }
     }
     
-    // MARK: - Card Tap Handler (Locked items only)
+    // MARK: - Pinned Section (compact horizontal strip)
+    private var pinnedSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("PINNED")
+                .font(.system(size: 10, design: .monospaced).weight(.black))
+                .foregroundStyle(TacticalTheme.textSecondary.opacity(0.5))
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(pinnedItems) { item in
+                        NavigationLink(value: item) { pinnedCard(item) }
+                            .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+            }
+        }
+        .padding(.bottom, 14)
+    }
+    
+    private func pinnedCard(_ item: SurvivalItem) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: item.iconName)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(TacticalTheme.accent)
+            
+            Text(item.title)
+                .font(.system(size: 11, design: .monospaced).weight(.bold))
+                .foregroundStyle(TacticalTheme.textPrimary)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(TacticalTheme.cardBackground)
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(TacticalTheme.accent.opacity(0.2), lineWidth: 1))
+        )
+    }
+    
+    // MARK: - No Results
+    private var noResultsView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(TacticalTheme.textSecondary.opacity(0.3))
+            
+            Text("No guides match \"\(searchText)\"")
+                .font(.system(size: 14, design: .rounded).weight(.medium))
+                .foregroundStyle(TacticalTheme.textSecondary)
+        }
+        .padding(.top, 60)
+    }
+    
+    // MARK: - Handlers
     private func handleCardTap(_ item: SurvivalItem) {
-        // Heavy haptic + error toast for locked modules
         HapticManager.shared.heavy()
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-            showToast = true
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { showToast = true }
+    }
+    
+    // MARK: - Floating SOS
+    private var sosFloatingButton: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Button {
+                    HapticManager.shared.heavy()
+                    showSOS = true
+                } label: {
+                    ZStack {
+                        Circle()
+                            .stroke(TacticalTheme.danger.opacity(0.25), lineWidth: 1.5)
+                            .frame(width: sosPulse ? 60 : 50, height: sosPulse ? 60 : 50)
+                            .opacity(sosPulse ? 0 : 0.6)
+                            .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false), value: sosPulse)
+                        
+                        Circle()
+                            .fill(TacticalTheme.danger)
+                            .frame(width: 50, height: 50)
+                            .shadow(color: TacticalTheme.danger.opacity(0.3), radius: 8)
+                        
+                        Text("SOS")
+                            .font(.system(size: 13, design: .monospaced).weight(.black))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .accessibilityLabel("Emergency SOS")
+                .onAppear { sosPulse = true }
+                .padding(.leading, AdaptiveLayout.horizontalPadding)
+                .padding(.bottom, 28)
+                
+                Spacer()
+            }
         }
     }
 }
 
-// MARK: - Category Pill Button
-// Responsive pill with adaptive sizing for iPad's larger screens.
+// MARK: - Category Pill (simplified — no count badge)
 struct CategoryPill: View {
     let title: String
     let icon: String
     let isSelected: Bool
     
     var body: some View {
-        HStack(spacing: AdaptiveLayout.isIPad ? 8 : 6) {
+        HStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: AdaptiveLayout.pillIconSize, weight: .semibold))
             
@@ -215,60 +376,49 @@ struct CategoryPill: View {
         .padding(.horizontal, AdaptiveLayout.pillHorizontalPadding)
         .padding(.vertical, AdaptiveLayout.pillVerticalPadding)
         .background(
-            Capsule()
-                .fill(isSelected ? TacticalTheme.accent : TacticalTheme.cardBackground)
+            Capsule().fill(isSelected ? TacticalTheme.accent : TacticalTheme.cardBackground)
         )
         .overlay(
-            Capsule()
-                .strokeBorder(
-                    isSelected ? Color.clear : TacticalTheme.textSecondary.opacity(0.2),
-                    lineWidth: 1
-                )
+            Capsule().strokeBorder(
+                isSelected ? Color.clear : TacticalTheme.textSecondary.opacity(0.15),
+                lineWidth: 1
+            )
         )
     }
 }
 
-// MARK: - Survival Card View
-// Individual grid card. Uses matchedGeometryEffect for hero transitions.
-// Scales icon size, card height, and corner radius for iPad.
+// MARK: - Survival Card View (clean, focused)
 struct SurvivalCardView: View {
     let item: SurvivalItem
     let namespace: Namespace.ID
+    var isPinned: Bool = false
+    
+    private var categoryColor: Color {
+        switch item.category {
+        case .medical: return TacticalTheme.danger
+        case .auto:    return TacticalTheme.accent
+        case .urban:   return Color(hex: "5E9EFF")
+        case .wild:    return Color(hex: "4ADE80")
+        case .tools:   return Color(hex: "F59E0B")
+        }
+    }
     
     var body: some View {
-        VStack(spacing: AdaptiveLayout.isIPad ? 16 : 12) {
+        VStack(spacing: 10) {
             Spacer()
             
-            // Large SF Symbol — zero asset cost, scales infinitely
-            ZStack {
-                Image(systemName: item.iconName)
-                    .font(.system(size: AdaptiveLayout.cardIconSize, weight: .semibold))
-                    .foregroundStyle(
-                        item.isLocked
-                            ? TacticalTheme.textSecondary
-                            : TacticalTheme.accent
-                    )
-                    .matchedGeometryEffect(id: "icon_\(item.id)", in: namespace)
-                
-                // Lock overlay for locked items
-                if item.isLocked {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: AdaptiveLayout.isIPad ? 18 : 14, weight: .bold))
-                        .foregroundStyle(TacticalTheme.danger.opacity(0.8))
-                        .offset(x: AdaptiveLayout.isIPad ? 24 : 18, y: AdaptiveLayout.isIPad ? -22 : -16)
-                }
-            }
+            // Icon — single focal point
+            Image(systemName: item.iconName)
+                .font(.system(size: AdaptiveLayout.cardIconSize, weight: .semibold))
+                .foregroundStyle(item.isLocked ? TacticalTheme.textSecondary : categoryColor)
+                .matchedGeometryEffect(id: "icon_\(item.id)", in: namespace)
             
             Spacer()
             
-            // Item title
+            // Title
             Text(item.title)
                 .font(.system(size: AdaptiveLayout.cardTitleSize, design: .monospaced).weight(.semibold))
-                .foregroundStyle(
-                    item.isLocked
-                        ? TacticalTheme.textSecondary
-                        : TacticalTheme.textPrimary
-                )
+                .foregroundStyle(item.isLocked ? TacticalTheme.textSecondary : TacticalTheme.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .matchedGeometryEffect(id: "title_\(item.id)", in: namespace)
@@ -281,16 +431,30 @@ struct SurvivalCardView: View {
                 .fill(TacticalTheme.cardBackground)
                 .matchedGeometryEffect(id: "bg_\(item.id)", in: namespace)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: AdaptiveLayout.cardRadius, style: .continuous)
-                .strokeBorder(
-                    item.isLocked
-                        ? Color.clear
-                        : TacticalTheme.accent.opacity(0.2),
-                    lineWidth: 1
-                )
-        )
-        .opacity(item.isLocked ? 0.5 : 1.0)
-        .scaleEffect(item.isLocked ? 0.98 : 1.0)
+        .overlay(alignment: .leading) {
+            // Subtle category accent line
+            if !item.isLocked {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(categoryColor.opacity(0.4))
+                    .frame(width: 3)
+                    .padding(.vertical, 14)
+                    .clipShape(RoundedRectangle(cornerRadius: AdaptiveLayout.cardRadius, style: .continuous))
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            // Lock or pin — only ONE indicator, never both
+            if item.isLocked {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(TacticalTheme.danger.opacity(0.6))
+                    .padding(10)
+            } else if isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(TacticalTheme.accent.opacity(0.6))
+                    .padding(10)
+            }
+        }
+        .opacity(item.isLocked ? 0.45 : 1.0)
     }
 }

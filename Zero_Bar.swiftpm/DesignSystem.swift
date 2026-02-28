@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 // MARK: - Tactical OS Design System
 // Centralized design tokens ensure visual consistency across all views.
@@ -83,6 +84,40 @@ final class HapticManager: Sendable {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
     }
+}
+
+// MARK: - Speech Manager (Text-to-Speech)
+// Wraps AVSpeechSynthesizer for hands-free step reading.
+// Stays alive as a singleton so the synthesizer isn't deallocated mid-speech.
+@MainActor
+final class SpeechManager: @unchecked Sendable {
+    static let shared = SpeechManager()
+    private let synth = AVSpeechSynthesizer()
+    private init() {}
+    
+    var isSpeaking: Bool { synth.isSpeaking }
+    
+    func speak(_ text: String) {
+        synth.stopSpeaking(at: .immediate)
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = 0.48
+        utterance.pitchMultiplier = 1.0
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        synth.speak(utterance)
+    }
+    
+    func stop() {
+        synth.stopSpeaking(at: .immediate)
+    }
+    
+    func toggle(_ text: String) {
+        if synth.isSpeaking { stop() } else { speak(text) }
+    }
+}
+
+// MARK: - Medical Disclaimer
+enum AppConstants {
+    static let disclaimer = "This app provides general emergency guidance only. It is NOT a substitute for professional medical training, certified first aid courses, or emergency medical services. Always call emergency services first. The developers assume no liability for actions taken based on this information."
 }
 
 // MARK: - Toast View
@@ -175,55 +210,73 @@ struct ScanLinesOverlay: View {
 enum AdaptiveLayout {
     
     /// True when running on iPad (any model)
+    @MainActor
     static var isIPad: Bool {
         UIDevice.current.userInterfaceIdiom == .pad
     }
     
     // MARK: Grid
     /// Number of columns in the survival module grid
+    @MainActor
     static var gridColumns: Int { isIPad ? 4 : 2 }
     /// Spacing between grid items
+    @MainActor
     static var gridSpacing: CGFloat { isIPad ? 20 : 14 }
     /// Card height in the grid
+    @MainActor
     static var cardHeight: CGFloat { isIPad ? 200 : 150 }
     /// Card corner radius
+    @MainActor
     static var cardRadius: CGFloat { isIPad ? 20 : 16 }
     /// Card icon size
+    @MainActor
     static var cardIconSize: CGFloat { isIPad ? 48 : 36 }
     /// Card title font size
+    @MainActor
     static var cardTitleSize: CGFloat { isIPad ? 14 : 12 }
     
     // MARK: Padding
     /// Horizontal padding for the main content area
+    @MainActor
     static var horizontalPadding: CGFloat { isIPad ? 32 : 16 }
     /// Horizontal inset for the HUD bar
+    @MainActor
     static var hudPadding: CGFloat { isIPad ? 32 : 20 }
     
     // MARK: Detail Views
     /// Max width for detail content to avoid excessive line lengths on iPad
+    @MainActor
     static var detailMaxWidth: CGFloat { isIPad ? 700 : .infinity }
     
     // MARK: Category Filter
     /// Pill horizontal padding
+    @MainActor
     static var pillHorizontalPadding: CGFloat { isIPad ? 20 : 14 }
     /// Pill vertical padding
+    @MainActor
     static var pillVerticalPadding: CGFloat { isIPad ? 12 : 9 }
     /// Pill icon size
+    @MainActor
     static var pillIconSize: CGFloat { isIPad ? 14 : 12 }
     /// Pill label size
+    @MainActor
     static var pillLabelSize: CGFloat { isIPad ? 13 : 11 }
     
     // MARK: HUD Header
     /// Battery icon size
+    @MainActor
     static var hudIconSize: CGFloat { isIPad ? 18 : 14 }
     /// Title font size
+    @MainActor
     static var hudTitleSize: CGFloat { isIPad ? 16 : 13 }
     
     // MARK: Typography Scaling
     /// Scale factor for body text on iPad
+    @MainActor
     static var bodyScale: CGFloat { isIPad ? 1.15 : 1.0 }
     
     /// Builds the adaptive grid column array
+    @MainActor
     static func gridItemArray() -> [GridItem] {
         Array(
             repeating: GridItem(.flexible(), spacing: gridSpacing),

@@ -382,6 +382,9 @@ struct MetronomeView: View {
             }
             .padding(.bottom, 40)
         }
+        .onAppear {
+            startMetronome()
+        }
     }
     
     // ~110 BPM = 545ms interval
