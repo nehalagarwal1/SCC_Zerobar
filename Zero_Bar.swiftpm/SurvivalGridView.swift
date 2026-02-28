@@ -126,19 +126,6 @@ struct SurvivalGridView: View {
             
             Spacer()
             
-            // Audio Toggle
-            Button {
-                HapticManager.shared.tap()
-                isAudioEnabled.toggle()
-            } label: {
-                Image(systemName: isAudioEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(isAudioEnabled ? TacticalTheme.accent : TacticalTheme.danger)
-                    .padding(8)
-                    .background(Circle().fill(TacticalTheme.cardBackground))
-            }
-            .accessibilityLabel(isAudioEnabled ? "Mute automatic audio" : "Enable automatic audio")
-            
             // Quiz — subtle icon button
             Button {
                 HapticManager.shared.tap()
