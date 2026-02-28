@@ -14,6 +14,9 @@ struct SurvivalGridView: View {
     @State private var showQuiz = false
     @AppStorage("pinnedItems") private var pinnedItemsData: String = "1,2,5,22"
     @AppStorage("globalAudioEnabled") private var isAudioEnabled: Bool = true
+    @AppStorage("quizBestScore") private var quizBestScore: Int = 0
+    @AppStorage("quizBestStreak") private var quizBestStreak: Int = 0
+    @AppStorage("quizAttempts") private var quizAttempts: Int = 0
     
     let namespace: Namespace.ID
     
@@ -71,6 +74,13 @@ struct SurvivalGridView: View {
                         pinnedSection
                     }
                     
+                    // ── Quiz Banner ─────────────────────
+                    if searchText.isEmpty {
+                        quizBanner
+                            .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+                            .padding(.bottom, 10)
+                    }
+                    
                     LazyVGrid(
                         columns: AdaptiveLayout.gridItemArray(),
                         spacing: AdaptiveLayout.gridSpacing
@@ -125,19 +135,6 @@ struct SurvivalGridView: View {
             }
             
             Spacer()
-            
-            // Quiz — subtle icon button
-            Button {
-                HapticManager.shared.tap()
-                showQuiz = true
-            } label: {
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(TacticalTheme.textSecondary)
-                    .padding(8)
-                    .background(Circle().fill(TacticalTheme.cardBackground))
-            }
-            .accessibilityLabel("Take survival quiz")
             
             // No Signal indicator — just a small dot + text
             HStack(spacing: 4) {
@@ -259,6 +256,86 @@ struct SurvivalGridView: View {
                 .foregroundStyle(TacticalTheme.textSecondary)
         }
         .padding(.top, 60)
+    }
+    
+    // MARK: - Quiz Banner (prominent CTA)
+    private var quizBanner: some View {
+        Button {
+            HapticManager.shared.success()
+            showQuiz = true
+        } label: {
+            HStack(spacing: 16) {
+                // Left: Animated brain icon
+                ZStack {
+                    Circle()
+                        .fill(TacticalTheme.accent.opacity(0.15))
+                        .frame(width: 56, height: 56)
+                    
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(TacticalTheme.accent)
+                }
+                
+                // Center: Title + stats
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("SURVIVAL QUIZ")
+                        .font(.system(size: 14, design: .monospaced).weight(.black))
+                        .foregroundStyle(TacticalTheme.textPrimary)
+                    
+                    if quizAttempts > 0 {
+                        HStack(spacing: 12) {
+                            HStack(spacing: 3) {
+                                Image(systemName: "star.fill").font(.system(size: 9))
+                                Text("Best: \(quizBestScore)/10")
+                                    .font(.system(size: 10, design: .monospaced).weight(.bold))
+                            }
+                            .foregroundStyle(TacticalTheme.accent)
+                            
+                            HStack(spacing: 3) {
+                                Image(systemName: "flame.fill").font(.system(size: 9))
+                                Text("Streak: \(quizBestStreak)")
+                                    .font(.system(size: 10, design: .monospaced).weight(.bold))
+                            }
+                            .foregroundStyle(Color(hex: "FF9500"))
+                        }
+                    } else {
+                        Text("Test your emergency instincts")
+                            .font(.system(size: 11, design: .rounded).weight(.medium))
+                            .foregroundStyle(TacticalTheme.textSecondary)
+                    }
+                }
+                
+                Spacer()
+                
+                // Right: Play button
+                ZStack {
+                    Circle()
+                        .fill(TacticalTheme.accent)
+                        .frame(width: 36, height: 36)
+                    
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(TacticalTheme.background)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(TacticalTheme.cardBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [TacticalTheme.accent.opacity(0.4), TacticalTheme.accent.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Handlers
