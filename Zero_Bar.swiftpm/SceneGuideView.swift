@@ -107,10 +107,8 @@ struct SceneGuideView: View {
         VStack(spacing: 0) {
             // Step number + icon
             VStack(spacing: 16) {
-                // Large category icon (subtle watermark)
-                Image(systemName: StepIconMapper.icon(for: item.steps[currentStep]))
-                    .font(.system(size: emergencyMode ? 52 : 44, weight: .light))
-                    .foregroundStyle(accent.opacity(0.15))
+                // Dynamic Micro-Scene Router
+                IllustrationProvider.illustration(for: item, step: currentStep, color: accent)
                     .padding(.top, 12)
                 
                 // Step counter
