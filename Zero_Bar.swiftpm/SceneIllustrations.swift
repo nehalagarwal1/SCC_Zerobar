@@ -164,7 +164,14 @@ struct BleedingIllustration: View {
             }
             // Step 3: Elevate
             else if step == 3 {
-                 Image(systemName: "arrow.up").font(.largeTitle)
+                var arrowPath = Path()
+                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
+                arrowPath.addLine(to: CGPoint(x: center.x - 15, y: center.y - 20))
+                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
+                arrowPath.addLine(to: CGPoint(x: center.x + 15, y: center.y - 20))
+                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
+                arrowPath.addLine(to: CGPoint(x: center.x, y: center.y + 10))
+                context.stroke(arrowPath, with: .color(color), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
             }
             // Step 4: Maintain steady pressure
             else if step == 4 {
@@ -172,7 +179,15 @@ struct BleedingIllustration: View {
                 gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30, width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
                 context.fill(gauzePath, with: .color(.white.opacity(0.9)))
                 context.stroke(gauzePath, with: .color(.gray.opacity(0.5)), lineWidth: 1)
-                 // Add an arrow pressing down
+                
+                var arrowPath = Path()
+                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
+                arrowPath.addLine(to: CGPoint(x: center.x - 10, y: center.y - 25))
+                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
+                arrowPath.addLine(to: CGPoint(x: center.x + 10, y: center.y - 25))
+                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
+                arrowPath.addLine(to: CGPoint(x: center.x, y: center.y - 50))
+                context.stroke(arrowPath, with: .color(color), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
             }
             // Step 5: Tourniquet
             else if step >= 5 {
