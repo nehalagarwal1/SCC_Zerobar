@@ -20,6 +20,8 @@ struct QuizView: View {
     @State private var showExplanation = false
     @State private var selectedCategory: SurvivalCategory? = nil
     @State private var wrongAnswers: [QuizQuestion] = []
+    @State private var orderSelections: [String] = []
+    @State private var orderLocked = false
     
     // Persistent stats
     @AppStorage("quizBestScore") private var quizBestScore: Int = 0
@@ -201,7 +203,13 @@ struct QuizView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
                     questionCard.padding(.top, 16)
-                    answerOptions
+                    
+                    if currentIndex < questions.count && questions[currentIndex].questionType == .ordering {
+                        orderingAnswerView
+                    } else {
+                        answerOptions
+                    }
+                    
                     if showExplanation { explanationCard }
                 }
                 .padding(.horizontal, AdaptiveLayout.horizontalPadding)
@@ -310,6 +318,163 @@ struct QuizView: View {
                     answerButton(option)
                 }
             }
+        }
+    }
+    
+    // MARK: - Ordering Answer View
+    private var orderingAnswerView: some View {
+        VStack(spacing: 10) {
+            // Selected steps (in order picked)
+            if !orderSelections.isEmpty {
+                VStack(spacing: 6) {
+                    Text("YOUR ORDER")
+                        .font(.system(size: 9, design: .monospaced).weight(.black))
+                        .foregroundStyle(TacticalTheme.textSecondary.opacity(0.4))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    ForEach(Array(orderSelections.enumerated()), id: \.offset) { idx, step in
+                        HStack(spacing: 10) {
+                            Text("\(idx + 1)")
+                                .font(.system(size: 12, design: .monospaced).weight(.black))
+                                .foregroundStyle(TacticalTheme.background)
+                                .frame(width: 24, height: 24)
+                                .background(Circle().fill(orderStepColor(idx: idx)))
+                            
+                            Text(step)
+                                .font(.system(size: 12, design: .rounded).weight(.semibold))
+                                .foregroundStyle(orderLocked ? orderStepColor(idx: idx) : TacticalTheme.textPrimary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                            
+                            Spacer()
+                            
+                            if orderLocked {
+                                Image(systemName: isOrderStepCorrect(idx: idx) ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(isOrderStepCorrect(idx: idx) ? Color(hex: "4ADE80") : TacticalTheme.danger)
+                            }
+                        }
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(TacticalTheme.cardBackground.opacity(0.5))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(orderLocked ? orderStepColor(idx: idx).opacity(0.3) : TacticalTheme.accent.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                    }
+                }
+                .padding(.bottom, 6)
+            }
+            
+            // Available steps to pick from
+            if currentIndex < questions.count {
+                let remaining = questions[currentIndex].options.filter { !orderSelections.contains($0) }
+                
+                if !remaining.isEmpty && !orderLocked {
+                    VStack(spacing: 6) {
+                        Text("TAP IN ORDER")
+                            .font(.system(size: 9, design: .monospaced).weight(.black))
+                            .foregroundStyle(TacticalTheme.textSecondary.opacity(0.4))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        ForEach(remaining, id: \.self) { step in
+                            Button {
+                                HapticManager.shared.tap()
+                                withAnimation(.spring(response: 0.3)) {
+                                    orderSelections.append(step)
+                                }
+                                
+                                // Check if all steps are placed
+                                if orderSelections.count == questions[currentIndex].options.count {
+                                    checkOrderAnswer()
+                                }
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(TacticalTheme.accent.opacity(0.6))
+                                    
+                                    Text(step)
+                                        .font(.system(size: 13, design: .rounded).weight(.semibold))
+                                        .foregroundStyle(TacticalTheme.textPrimary)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Spacer()
+                                }
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .fill(TacticalTheme.cardBackground)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .strokeBorder(TacticalTheme.textSecondary.opacity(0.15), lineWidth: 1)
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                
+                // Undo button
+                if !orderSelections.isEmpty && !orderLocked {
+                    Button {
+                        HapticManager.shared.tap()
+                        withAnimation(.spring(response: 0.3)) {
+                            _ = orderSelections.removeLast()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "arrow.uturn.backward").font(.system(size: 11, weight: .bold))
+                            Text("UNDO").font(.system(size: 10, design: .monospaced).weight(.bold))
+                        }
+                        .foregroundStyle(TacticalTheme.textSecondary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(TacticalTheme.cardBackground))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 4)
+                }
+            }
+        }
+    }
+    
+    private func orderStepColor(idx: Int) -> Color {
+        guard orderLocked else { return TacticalTheme.accent }
+        return isOrderStepCorrect(idx: idx) ? Color(hex: "4ADE80") : TacticalTheme.danger
+    }
+    
+    private func isOrderStepCorrect(idx: Int) -> Bool {
+        guard currentIndex < questions.count,
+              idx < orderSelections.count,
+              idx < questions[currentIndex].correctOrder.count else { return false }
+        return orderSelections[idx] == questions[currentIndex].correctOrder[idx]
+    }
+    
+    private func checkOrderAnswer() {
+        guard currentIndex < questions.count else { return }
+        let q = questions[currentIndex]
+        timerActive = false
+        orderLocked = true
+        
+        let isCorrect = orderSelections == q.correctOrder
+        if isCorrect {
+            score += 1
+            streak += 1
+            bestStreak = max(bestStreak, streak)
+            HapticManager.shared.success()
+        } else {
+            streak = 0
+            HapticManager.shared.error()
+            wrongAnswers.append(q)
+        }
+        
+        showExplanation = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            advanceQuestion()
         }
     }
     
@@ -648,19 +813,43 @@ struct QuizView: View {
                 ))
                 
             case 1:
-                // Type 2: "How many steps?" 
-                let correctCount = item.steps.count
-                let wrongCounts = [correctCount + 1, correctCount + 2, max(1, correctCount - 1)]
-                var options = (["\(correctCount) steps"] + wrongCounts.map { "\($0) steps" })
-                options.shuffle()
+                // Type 2: "Arrange steps in correct order"
+                guard item.steps.count >= 4 else {
+                    // Fallback to firstStep if not enough steps
+                    let correctStep = item.steps[0]
+                    let distractors = fallbackItems
+                        .filter { $0.id != item.id }
+                        .shuffled()
+                        .prefix(3)
+                        .map { $0.steps[0] }
+                    var options = [correctStep] + Array(distractors)
+                    options.shuffle()
+                    generated.append(QuizQuestion(
+                        question: "What should you do FIRST for: \(item.title)?",
+                        context: "Category: \(item.category.rawValue)",
+                        correctAnswer: correctStep,
+                        options: options,
+                        sourceTitle: item.title,
+                        questionType: .firstStep
+                    ))
+                    continue
+                }
+                // Pick first 4 steps as the correct order
+                let correctOrder = Array(item.steps.prefix(4))
+                var scrambled = correctOrder
+                // Ensure it's actually shuffled
+                while scrambled == correctOrder {
+                    scrambled.shuffle()
+                }
                 
                 generated.append(QuizQuestion(
-                    question: "How many steps are in: \(item.title)?",
-                    context: "Category: \(item.category.rawValue)",
-                    correctAnswer: "\(correctCount) steps",
-                    options: options,
+                    question: "Arrange the first 4 steps of \(item.title) in correct order:",
+                    context: "Tap each step in the right sequence",
+                    correctAnswer: correctOrder.joined(separator: " → "),
+                    options: scrambled,
                     sourceTitle: item.title,
-                    questionType: .stepCount
+                    questionType: .ordering,
+                    correctOrder: correctOrder
                 ))
                 
             default:
@@ -723,6 +912,8 @@ struct QuizView: View {
                 currentIndex += 1
                 selectedAnswer = nil
                 showExplanation = false
+                orderSelections = []
+                orderLocked = false
             }
             startTimer()
         } else {
@@ -745,6 +936,8 @@ struct QuizView: View {
         selectedAnswer = nil
         showExplanation = false
         wrongAnswers = []
+        orderSelections = []
+        orderLocked = false
         generateQuestions()
         withAnimation(.spring(response: 0.4)) { quizState = .playing }
         startTimer()
@@ -754,7 +947,7 @@ struct QuizView: View {
 // MARK: - QuizQuestion Model
 enum QuestionType {
     case firstStep
-    case stepCount
+    case ordering
     case category
 }
 
@@ -765,11 +958,12 @@ struct QuizQuestion {
     let options: [String]
     let sourceTitle: String
     let questionType: QuestionType
+    var correctOrder: [String] = []
     
     var typeBadge: String {
         switch questionType {
         case .firstStep: return "FIRST STEP"
-        case .stepCount: return "STEP COUNT"
+        case .ordering:  return "ORDER"
         case .category:  return "CATEGORY"
         }
     }
