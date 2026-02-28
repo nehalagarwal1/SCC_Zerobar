@@ -538,16 +538,146 @@ struct RecoveryPositionIllustration: View {
 }
 
 // AUTO
-struct TireChangeIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "circle.circle.fill", color: color) } }
-struct JumpStartIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "battery.100.bolt", color: color) } }
-struct EscapeSinkingCarIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "car.side.fill", color: color) } }
-struct EngineOverheatIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "thermometer.sun.fill", color: color) } }
-struct PatchRadiatorHoseIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "wrench.fill", color: color) } }
-struct CarStuckInSnowIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "snowflake", color: color) } }
-struct TowWithRopeIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "link", color: color) } }
-struct CarAccidentResponseIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "car.2.fill", color: color) } }
-struct EmergencyBrakeFixIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "exclamationmark.triangle.fill", color: color) } }
-struct RoadsideBreakdownIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "exclamationmark.shield.fill", color: color) } }
+struct TireChangeIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "parkingsign.circle.fill"); Image(systemName: "car.side.fill") } }
+            else if step == 1 { Image(systemName: "arrow.down.to.line") }
+            else if step == 2 { Image(systemName: "arrow.up.square.fill") }
+            else if step == 3 { HStack { Image(systemName: "circle.dashed"); Image(systemName: "wrench.adjustable.fill") } }
+            else if step == 4 { Image(systemName: "star.fill") }
+            else { HStack { Image(systemName: "arrow.down.square.fill"); Image(systemName: "wrench.adjustable.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct JumpStartIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "car.2.fill") }
+            else if step == 1 { HStack { Image(systemName: "bolt.batteryblock.fill").foregroundColor(.red); Image(systemName: "plus.circle.fill") } }
+            else if step == 2 { HStack { Image(systemName: "battery.100.bolt").foregroundColor(.green); Image(systemName: "plus.circle.fill") } }
+            else if step == 3 { HStack { Image(systemName: "battery.100.bolt").foregroundColor(.green); Image(systemName: "minus.circle.fill") } }
+            else if step == 4 { HStack { Image(systemName: "minus.circle.fill"); Image(systemName: "engine.combustion.fill") } }
+            else if step == 5 { HStack { Image(systemName: "key.fill"); Image(systemName: "timer") } }
+            else { Image(systemName: "arrow.uturn.backward.circle.fill") }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EscapeSinkingCarIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "water.waves"); Image(systemName: "timer") } }
+            else if step == 1 { Image(systemName: "figure.seated.seatbelt.and.airbag.on").rotationEffect(.degrees(10)) } // seatbelt off concept
+            else if step == 2 { HStack { Image(systemName: "car.door.left.fill"); Image(systemName: "xmark.circle.fill").foregroundColor(.red) } }
+            else if step == 3 { Image(systemName: "rectangle.portrait.bottomhalf.inset.filled") }
+            else if step == 4 { HStack { Image(systemName: "hammer.fill"); Image(systemName: "rectangle.dashed") } }
+            else { HStack { Image(systemName: "figure.pool.swim"); Image(systemName: "arrow.up") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EngineOverheatIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "snowflake.slash"); Image(systemName: "flame.fill").foregroundColor(.red) } }
+            else if step == 1 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "stop.circle.fill").foregroundColor(.red) } }
+            else if step == 2 { HStack { Image(systemName: "timer"); Text("30m").font(.title).bold() } }
+            else if step == 3 { Image(systemName: "drop.fill").foregroundColor(.blue) }
+            else if step == 4 { HStack { Image(systemName: "magnifyingglass"); Image(systemName: "drop.fill").foregroundColor(.green) } }
+            else { HStack { Image(systemName: "car.side.fill"); Image(systemName: "tortoise.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct PatchRadiatorHoseIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "thermometer.snowflake") }
+            else if step == 1 { HStack { Image(systemName: "magnifyingglass"); Image(systemName: "drop.fill") } }
+            else if step == 2 { Image(systemName: "sparkles") }
+            else if step == 3 { Image(systemName: "rectangle.fill").foregroundColor(.gray) } // tape
+            else if step == 4 { Image(systemName: "rectangle.stack.fill").foregroundColor(.gray) }
+            else { HStack { Image(systemName: "drop.fill"); Image(systemName: "wrench.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct CarStuckInSnowIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "circle.dashed"); Image(systemName: "xmark.circle.fill").foregroundColor(.red) } }
+            else if step == 1 { Image(systemName: "snowflake.slash") }
+            else if step == 2 { Image(systemName: "squareshape.split.3x3") } // traction concept
+            else if step == 3 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "arrow.left.and.right") } }
+            else if step == 4 { HStack { Image(systemName: "tire"); Image(systemName: "arrow.down") } }
+            else { HStack { Image(systemName: "figure.walk"); Image(systemName: "car.side.fill") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct TowWithRopeIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { Image(systemName: "link") }
+            else if step == 1 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "link"); Image(systemName: "car.side.fill") } }
+            else if step == 2 { Image(systemName: "minus").font(.system(size: 100, weight: .heavy)) } // taut line
+            else if step == 3 { Image(systemName: "key.fill") }
+            else if step == 4 { HStack { Image(systemName: "tortoise.fill"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } }
+            else { HStack { Image(systemName: "car.side.fill"); Image(systemName: "arrow.down.to.line") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct CarAccidentResponseIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "parkingsign.circle.fill"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } }
+            else if step == 1 { Image(systemName: "phone.fill.arrow.up.right").foregroundColor(.red) }
+            else if step == 2 { Image(systemName: "person.2.fill") }
+            else if step == 3 { Image(systemName: "cross.case.fill").foregroundColor(.red) }
+            else if step == 4 { Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) }
+            else { Image(systemName: "doc.text.fill") }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct EmergencyBrakeFixIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.red); Image(systemName: "shoe.fill") } }
+            else if step == 1 { HStack { Image(systemName: "shoe.fill"); Image(systemName: "arrow.up.and.down") } }
+            else if step == 2 { HStack { Image(systemName: "arrow.down"); Image(systemName: "gearshape.fill") } }
+            else if step == 3 { Image(systemName: "parkingsign.circle.fill").foregroundColor(.red) }
+            else if step == 4 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "triangle.fill").rotationEffect(.degrees(90)).opacity(0.5) } }
+            else { HStack { Image(systemName: "stop.circle.fill").foregroundColor(.red); Image(systemName: "phone.fill.arrow.up.right") } }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
+
+struct RoadsideBreakdownIllustration: View {
+    let step: Int; let color: Color
+    var body: some View {
+        ZStack {
+            if step == 0 { HStack { Image(systemName: "car.side.fill"); Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) } }
+            else if step == 1 { Image(systemName: "figure.seated.seatbelt") }
+            else if step == 2 { HStack(spacing: 40) { Image(systemName: "car.side.fill"); Image(systemName: "figure.walk") } }
+            else if step == 3 { Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange) }
+            else if step == 4 { HStack { Image(systemName: "car.front.waves.up.fill"); Image(systemName: "flag.fill").foregroundColor(.red) } }
+            else { Image(systemName: "phone.fill.arrow.up.right") }
+        }.font(.system(size: 60, weight: .light)).foregroundColor(color)
+    }
+}
 
 // URBAN
 struct TornadoProtocolIllustration: View { let step: Int; let color: Color; var body: some View { DefaultIllustration(iconName: "tornado", color: color) } }
