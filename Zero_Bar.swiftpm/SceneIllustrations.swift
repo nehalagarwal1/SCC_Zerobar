@@ -130,79 +130,91 @@ struct BleedingIllustration: View {
     let color: Color
     
     var body: some View {
-        Canvas { context, size in
-            let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            
-            // Draw standard wound representation
-            var woundPath = Path()
-            woundPath.addEllipse(in: CGRect(x: center.x - 30, y: center.y - 10, width: 60, height: 20))
-            context.fill(woundPath, with: .color(color.opacity(0.3)))
-            context.stroke(woundPath, with: .color(color), lineWidth: 2)
-            
-            // Step 0: Put on gloves
-            if step == 0 {
-                var glovesPath = Path()
-                glovesPath.addRoundedRect(in: CGRect(x: center.x - 20, y: center.y - 40, width: 40, height: 40), cornerSize: CGSize(width: 5, height: 5))
-                context.fill(glovesPath, with: .color(.white))
-                context.stroke(glovesPath, with: .color(.gray), lineWidth: 2)
-            }
-            // Step 1: Apply pressure
-            else if step == 1 {
-                var gauzePath = Path()
-                gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30, width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
-                context.fill(gauzePath, with: .color(.white.opacity(0.9)))
-                context.stroke(gauzePath, with: .color(.gray.opacity(0.5)), lineWidth: 1)
-            }
-            // Step 2: Add more layers
-            else if step == 2 {
-                for i in 0..<3 {
+        ZStack {
+            Canvas { context, size in
+                let center = CGPoint(x: size.width / 2, y: size.height / 2)
+                
+                // Draw standard wound representation
+                var woundPath = Path()
+                woundPath.addEllipse(in: CGRect(x: center.x - 30, y: center.y - 10, width: 60, height: 20))
+                context.fill(woundPath, with: .color(color.opacity(0.3)))
+                context.stroke(woundPath, with: .color(color), lineWidth: 2)
+                
+                // Step 0: Put on gloves
+                if step == 0 {
+                    var glovesPath = Path()
+                    glovesPath.addRoundedRect(in: CGRect(x: center.x - 20, y: center.y - 40, width: 40, height: 40), cornerSize: CGSize(width: 5, height: 5))
+                    context.fill(glovesPath, with: .color(.white))
+                    context.stroke(glovesPath, with: .color(.gray), lineWidth: 2)
+                }
+                // Step 1: Apply pressure
+                else if step == 1 {
                     var gauzePath = Path()
-                    gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30 - CGFloat(i*5), width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
+                    gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30, width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
                     context.fill(gauzePath, with: .color(.white.opacity(0.9)))
                     context.stroke(gauzePath, with: .color(.gray.opacity(0.5)), lineWidth: 1)
+                    
+                    // Removed invalid context.draw for Text/Image rendering
+                    // To display the hand pressing, we will render it through a ZStack overlay on the view itself instead of via Canvas
+                }
+                // Step 2: Add more layers
+                else if step == 2 {
+                    for i in 0..<3 {
+                        var gauzePath = Path()
+                        gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30 - CGFloat(i*5), width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
+                        context.fill(gauzePath, with: .color(.white.opacity(0.9)))
+                        context.stroke(gauzePath, with: .color(.gray.opacity(0.5)), lineWidth: 1)
+                    }
+                }
+                // Step 3: Elevate
+                else if step == 3 {
+                    var arrowPath = Path()
+                    arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
+                    arrowPath.addLine(to: CGPoint(x: center.x - 15, y: center.y - 20))
+                    arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
+                    arrowPath.addLine(to: CGPoint(x: center.x + 15, y: center.y - 20))
+                    arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
+                    arrowPath.addLine(to: CGPoint(x: center.x, y: center.y + 10))
+                    context.stroke(arrowPath, with: .color(color), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                }
+                // Step 4: Maintain steady pressure
+                else if step == 4 {
+                    var gauzePath = Path()
+                    gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30, width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
+                    context.fill(gauzePath, with: .color(.white.opacity(0.9)))
+                    context.stroke(gauzePath, with: .color(.gray.opacity(0.5)), lineWidth: 1)
+                    
+                    var arrowPath = Path()
+                    arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
+                    arrowPath.addLine(to: CGPoint(x: center.x - 10, y: center.y - 25))
+                    arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
+                    arrowPath.addLine(to: CGPoint(x: center.x + 10, y: center.y - 25))
+                    arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
+                    arrowPath.addLine(to: CGPoint(x: center.x, y: center.y - 50))
+                    context.stroke(arrowPath, with: .color(color), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                }
+                // Step 5: Tourniquet
+                else if step >= 5 {
+                    var tourniquetPath = Path()
+                    tourniquetPath.addRect(CGRect(x: center.x - 50, y: center.y - 50, width: 100, height: 15))
+                    context.fill(tourniquetPath, with: .color(.black))
+                    context.stroke(tourniquetPath, with: .color(color), lineWidth: 2)
+                     
+                     var woundPath = Path()
+                     woundPath.addEllipse(in: CGRect(x: center.x - 30, y: center.y + 20, width: 60, height: 20))
+                     context.fill(woundPath, with: .color(color.opacity(0.3)))
+                     context.stroke(woundPath, with: .color(color), lineWidth: 2)
                 }
             }
-            // Step 3: Elevate
-            else if step == 3 {
-                var arrowPath = Path()
-                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
-                arrowPath.addLine(to: CGPoint(x: center.x - 15, y: center.y - 20))
-                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
-                arrowPath.addLine(to: CGPoint(x: center.x + 15, y: center.y - 20))
-                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 40))
-                arrowPath.addLine(to: CGPoint(x: center.x, y: center.y + 10))
-                context.stroke(arrowPath, with: .color(color), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
-            }
-            // Step 4: Maintain steady pressure
-            else if step == 4 {
-                var gauzePath = Path()
-                gauzePath.addRoundedRect(in: CGRect(x: center.x - 40, y: center.y - 30, width: 80, height: 60), cornerSize: CGSize(width: 8, height: 8))
-                context.fill(gauzePath, with: .color(.white.opacity(0.9)))
-                context.stroke(gauzePath, with: .color(.gray.opacity(0.5)), lineWidth: 1)
-                
-                var arrowPath = Path()
-                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
-                arrowPath.addLine(to: CGPoint(x: center.x - 10, y: center.y - 25))
-                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
-                arrowPath.addLine(to: CGPoint(x: center.x + 10, y: center.y - 25))
-                arrowPath.move(to: CGPoint(x: center.x, y: center.y - 10))
-                arrowPath.addLine(to: CGPoint(x: center.x, y: center.y - 50))
-                context.stroke(arrowPath, with: .color(color), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
-            }
-            // Step 5: Tourniquet
-            else if step >= 5 {
-                var tourniquetPath = Path()
-                tourniquetPath.addRect(CGRect(x: center.x - 50, y: center.y - 50, width: 100, height: 15))
-                context.fill(tourniquetPath, with: .color(.black))
-                context.stroke(tourniquetPath, with: .color(color), lineWidth: 2)
-                 
-                 var woundPath = Path()
-                 woundPath.addEllipse(in: CGRect(x: center.x - 30, y: center.y + 20, width: 60, height: 20))
-                 context.fill(woundPath, with: .color(color.opacity(0.3)))
-                 context.stroke(woundPath, with: .color(color), lineWidth: 2)
+            .frame(width: 150, height: 150)
+            
+            if step == 1 {
+                Image(systemName: "hand.raised.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(color)
+                    .offset(y: -10)
             }
         }
-        .frame(width: 150, height: 150)
     }
 }
 
@@ -312,26 +324,12 @@ struct HypothermiaIllustration: View {
     let step: Int; let color: Color
     var body: some View {
         ZStack {
-            if step == 0 {
-                Image(systemName: "house.fill")
-                Image(systemName: "thermometer.sun.fill").offset(x: 30, y: 30)
-            } else if step == 1 {
-                Image(systemName: "tshirt.fill")
-                Image(systemName: "drop.fill").foregroundColor(.blue).offset(x: 20, y: 20)
-                Image(systemName: "slash.circle.fill").foregroundColor(.red).font(.system(size: 80))
-            } else if step == 2 {
-                Image(systemName: "figure.stand")
-                Circle().fill(Color.orange.opacity(0.6)).frame(width: 30, height: 30).offset(y: -10)
-            } else if step == 3 {
-                HStack(spacing: -10) {
-                    Image(systemName: "figure.stand")
-                    Image(systemName: "figure.stand")
-                }
-            } else if step == 4 {
-                Image(systemName: "cup.and.saucer.fill")
-            } else {
-                Image(systemName: "hands.sparkles.fill")
-            }
+            if step == 0 { HStack { Image(systemName: "figure.walk"); Image(systemName: "arrow.right"); Image(systemName: "house.fill") } }
+            else if step == 1 { HStack { Image(systemName: "tshirt.fill"); Image(systemName: "drop.fill").foregroundColor(.blue); Image(systemName: "arrow.down") } }
+            else if step == 2 { HStack(spacing: 5) { Image(systemName: "flame.fill").foregroundColor(.orange); Image(systemName: "figure.stand") } } // warm core
+            else if step == 3 { HStack(spacing: -10) { Image(systemName: "figure.stand").foregroundColor(color); Image(systemName: "figure.stand").foregroundColor(.orange) } } // body-to-body
+            else if step == 4 { HStack { Image(systemName: "cup.and.saucer.fill"); Image(systemName: "wineglass.fill"); Image(systemName: "slash.circle.fill").foregroundColor(.red).offset(x: -30) } } // no alcohol
+            else { HStack { Image(systemName: "hand.raised.fill"); Image(systemName: "heart.text.square.fill") } } // handle gently
         }.font(.system(size: 60, weight: .light)).foregroundColor(color)
     }
 }
@@ -341,26 +339,27 @@ struct SnakeBiteIllustration: View {
     var body: some View {
         ZStack {
             if step == 0 {
-                HStack {
+                HStack { // move away
                     Image(systemName: "figure.walk")
-                    Image(systemName: "arrow.right")
-                    Image(systemName: "lizard.fill").rotationEffect(.degrees(180))
+                    Image(systemName: "arrow.left")
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.red) // representing threat
                 }
             } else if step == 1 {
-                Image(systemName: "figure.stand")
-                Image(systemName: "minus.circle").offset(x: 30, y: -30)
+                HStack { Image(systemName: "figure.stand"); Image(systemName: "minus.circle").offset(x: 10, y: -20) } // keep still
             } else if step == 2 {
-                Image(systemName: "watch")
-                Image(systemName: "arrow.up.right").offset(x: 20, y: -20)
+                HStack { // remove jewelry/watches
+                    Image(systemName: "watch.fill")
+                    Image(systemName: "arrow.up")
+                    Image(systemName: "tshirt.fill")
+                }
             } else if step == 3 {
                 HStack {
-                    Image(systemName: "bolt.heart.fill").foregroundColor(.red)
+                    Image(systemName: "heart.fill").foregroundColor(.red)
                     Image(systemName: "arrow.down")
                     Image(systemName: "hand.raised.fill")
-                }
+                } // below heart level
             } else if step == 4 {
-                Image(systemName: "cross.vial.fill")
-                Image(systemName: "slash.circle.fill").foregroundColor(.red).font(.system(size: 80))
+                HStack { Image(systemName: "scissors"); Image(systemName: "slash.circle.fill").foregroundColor(.red) } // no cutting
             } else {
                 Image(systemName: "phone.fill.arrow.up.right")
             }
