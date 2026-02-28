@@ -11,10 +11,7 @@ struct SurvivalGridView: View {
     @State private var selectedCategory: SurvivalCategory? = nil
     @State private var showToast = false
     @State private var searchText = ""
-    @State private var showSOS = false
     @State private var showQuiz = false
-    @State private var sosPulse = false
-    @State private var panicMode = false
     @AppStorage("pinnedItems") private var pinnedItemsData: String = "1,2,5,22"
     @AppStorage("globalAudioEnabled") private var isAudioEnabled: Bool = true
     
@@ -28,11 +25,6 @@ struct SurvivalGridView: View {
                 item.title.lowercased().contains(q) ||
                 item.steps.contains { $0.lowercased().contains(q) }
             }
-        }
-        
-        if panicMode {
-            // Further filter the items in panic mode. Let's just keep Medical, Auto, Wild, Urban
-            items = items.filter { $0.category == .medical || $0.category == .auto || $0.category == .wild || $0.category == .urban }
         }
         
         return items
@@ -55,7 +47,7 @@ struct SurvivalGridView: View {
     
     var body: some View {
         ZStack {
-            (panicMode ? TacticalTheme.danger.opacity(0.15) : TacticalTheme.background).ignoresSafeArea()
+            TacticalTheme.background.ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // ── Clean header ────────────────────
@@ -65,11 +57,9 @@ struct SurvivalGridView: View {
                     .padding(.bottom, 12)
                 
                 // ── Search (compact) ────────────────
-                if !panicMode {
-                    searchBar
-                        .padding(.horizontal, AdaptiveLayout.horizontalPadding)
-                        .padding(.bottom, 12)
-                }
+                searchBar
+                    .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+                    .padding(.bottom, 12)
                 
                 // ── Category filter ─────────────────
                 categoryFilter
@@ -77,7 +67,7 @@ struct SurvivalGridView: View {
                 
                 // ── Content ─────────────────────────
                 ScrollView(.vertical, showsIndicators: false) {
-                    if !panicMode && !pinnedItems.isEmpty && searchText.isEmpty && selectedCategory == nil {
+                    if !pinnedItems.isEmpty && searchText.isEmpty && selectedCategory == nil {
                         pinnedSection
                     }
                     
@@ -95,14 +85,9 @@ struct SurvivalGridView: View {
                     if filteredItems.isEmpty { noResultsView }
                 }
             }
-            
-            // Floating SOS — bottom-left, always visible
-            sosFloatingButton
-            
             ToastView(message: "MODULE OFFLINE — UNLOCK REQUIRED", isShowing: $showToast)
             ScanLinesOverlay().ignoresSafeArea()
         }
-        .sheet(isPresented: $showSOS) { EmergencySOSView() }
         .sheet(isPresented: $showQuiz) { QuizView() }
     }
     
@@ -141,20 +126,6 @@ struct SurvivalGridView: View {
             
             Spacer()
             
-            // PANIC Toggle
-            Button {
-                HapticManager.shared.heavy()
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) { panicMode.toggle() }
-            } label: {
-                Text(panicMode ? "LEARN MODE" : "EMERGENCY")
-                    .font(.system(size: 11, design: .monospaced).weight(.black))
-                    .foregroundStyle(panicMode ? TacticalTheme.background : TacticalTheme.danger)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(panicMode ? TacticalTheme.danger : TacticalTheme.danger.opacity(0.15)))
-            }
-            .accessibilityLabel(panicMode ? "Switch to Learn Mode" : "Switch to Emergency Mode")
-            
             // Audio Toggle
             Button {
                 HapticManager.shared.tap()
@@ -169,19 +140,17 @@ struct SurvivalGridView: View {
             .accessibilityLabel(isAudioEnabled ? "Mute automatic audio" : "Enable automatic audio")
             
             // Quiz — subtle icon button
-            if !panicMode {
-                Button {
-                    HapticManager.shared.tap()
-                    showQuiz = true
-                } label: {
-                    Image(systemName: "brain.head.profile")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(TacticalTheme.textSecondary)
-                        .padding(8)
-                        .background(Circle().fill(TacticalTheme.cardBackground))
-                }
-                .accessibilityLabel("Take survival quiz")
+            Button {
+                HapticManager.shared.tap()
+                showQuiz = true
+            } label: {
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(TacticalTheme.textSecondary)
+                    .padding(8)
+                    .background(Circle().fill(TacticalTheme.cardBackground))
             }
+            .accessibilityLabel("Take survival quiz")
             
             // No Signal indicator — just a small dot + text
             HStack(spacing: 4) {
@@ -309,42 +278,6 @@ struct SurvivalGridView: View {
     private func handleCardTap(_ item: SurvivalItem) {
         HapticManager.shared.heavy()
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { showToast = true }
-    }
-    
-    // MARK: - Floating SOS
-    private var sosFloatingButton: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Button {
-                    HapticManager.shared.heavy()
-                    showSOS = true
-                } label: {
-                    ZStack {
-                        Circle()
-                            .stroke(TacticalTheme.danger.opacity(0.25), lineWidth: 1.5)
-                            .frame(width: sosPulse ? 60 : 50, height: sosPulse ? 60 : 50)
-                            .opacity(sosPulse ? 0 : 0.6)
-                            .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false), value: sosPulse)
-                        
-                        Circle()
-                            .fill(TacticalTheme.danger)
-                            .frame(width: 50, height: 50)
-                            .shadow(color: TacticalTheme.danger.opacity(0.3), radius: 8)
-                        
-                        Text("SOS")
-                            .font(.system(size: 13, design: .monospaced).weight(.black))
-                            .foregroundStyle(.white)
-                    }
-                }
-                .accessibilityLabel("Emergency SOS")
-                .onAppear { sosPulse = true }
-                .padding(.leading, AdaptiveLayout.horizontalPadding)
-                .padding(.bottom, 28)
-                
-                Spacer()
-            }
-        }
     }
 }
 
