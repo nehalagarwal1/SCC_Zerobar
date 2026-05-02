@@ -19,7 +19,7 @@ let package = Package(
             bundleIdentifier: "nehal-scc.PrepVault",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .barChart),
+            appIcon: .placeholder(icon: .running),
             accentColor: .presetColor(.red),
             supportedDeviceFamilies: [
                 .pad,
@@ -39,5 +39,5 @@ let package = Package(
             path: "."
         )
     ],
-    swiftLanguageModes: [.v6]
+    swiftLanguageVersions: [.version("6")]
 )
